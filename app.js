@@ -165,7 +165,7 @@ const translations = {
     resultAssessmentDate: "Assessment Date",
 
     footerNote:
-      "This tool provides an automated preliminary assessment. Final credit decisions should be reviewed by an authorized credit officer.",
+      "This tool provides an automated preliminary assessment. Final credit decisions should be reviewed and approved by an authorized department.",
     languageToggle: "العربية",
   },
 
@@ -326,7 +326,7 @@ const translations = {
     resultCustomer: "العميل",
     resultAssessmentDate: "تاريخ التقييم",
 
-    footerNote: "توفر هذه الأداة تقييمًا أوليًا آليًا. يجب مراجعة القرارات الائتمانية النهائية من قبل مسؤول ائتمان معتمد.",
+    footerNote: "توفر هذه الأداة تقييمًا أوليًا آليًا. يجب مراجعة و اعتماد القرارات الائتمانية النهائية من قبل الادارة المختصة.",
     languageToggle: "English",
   },
 };
