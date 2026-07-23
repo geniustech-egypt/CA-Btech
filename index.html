@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B.TECH Credit Assessment Tool</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#344b2a">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker Registered!', reg))
+        .catch(err => console.error('Service Worker Registration Failed:', err));
+    });
+  }
+</script>
+</head>
+<body class="ltr">
+
+  <div class="app-shell">
+
+    <!-- ============ HEADER ============ -->
+    <header class="app-header">
+      <div class="header-glow header-glow-left"></div>
+      <div class="header-glow header-glow-right"></div>
+
+      <div class="app-header-inner">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">C.A</div>
+          <div class="brand-text">
+            <h1 id="appTitle" class="brand-title">B.TECH Credit Assessment</h1>
+            <p id="appSubtitle" class="brand-subtitle">Internal tool for evaluating customer creditworthiness</p>
+          </div>
+        </div>
+        <button id="langToggleBtn" class="lang-toggle" type="button">العربية</button>
+      </div>
+    </header>
+
+    <!-- ============ PROGRESS / STEP WIZARD ============ -->
+    <nav class="step-wizard" aria-label="Progress">
+      <div class="step-wizard-inner">
+        <div class="step-item">
+          <span id="stepDot1" class="step-dot">1</span>
+          <span id="stepLabel1" class="step-text">Customer Type</span>
+        </div>
+        <span id="stepConnector1" class="step-connector"></span>
+        <div class="step-item">
+          <span id="stepDot2" class="step-dot">2</span>
+          <span id="stepLabel2" class="step-text">Questionnaire</span>
+        </div>
+        <span id="stepConnector2" class="step-connector"></span>
+        <div class="step-item">
+          <span id="stepDot3" class="step-dot">3</span>
+          <span id="stepLabel3" class="step-text">Results</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ============ MAIN ============ -->
+    <main id="appMain" class="app-main">
+
+      <!-- ===== SCREEN 1: CUSTOMER TYPE SELECTION ===== -->
+      <section id="screen1" class="screen active">
+        <div class="screen-card">
+          <h2 id="chooseCustomerType" class="screen-title">Select customer type</h2>
+          <p id="chooseCustomerTypeHint" class="screen-hint">The questionnaire and scoring model will adapt automatically.</p>
+          <div id="customerTypeGrid" class="type-grid"></div>
+        </div>
+      </section>
+
+      <!-- ===== SCREEN 2: DYNAMIC QUESTIONNAIRE ===== -->
+      <section id="screen2" class="screen">
+        <div class="screen-card">
+          <div id="formErrorBanner" class="form-error-banner"></div>
+          <div id="questionnaireContainer" class="questionnaire-container"></div>
+          <div class="screen-actions">
+            <button id="btnBackTo1" type="button" class="btn btn-secondary">Back</button>
+            <button id="btnNextTo3" type="button" class="btn btn-primary">Calculate Assessment</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SCREEN 3: RESULTS DASHBOARD ===== -->
+      <section id="screen3" class="screen">
+        <div class="screen-card results-card">
+          <h2 id="resultsTitle" class="screen-title">Assessment Results</h2>
+          <p id="resultsSubtitle" class="screen-hint">Automated credit evaluation based on submitted data</p>
+
+          <!-- Customer name + date meta row -->
+          <div class="results-meta">
+            <div class="results-meta-item">
+              <span class="results-meta-label" id="resultCustomerLabel">Customer</span>
+              <span class="results-meta-value" id="resultCustomerName">—</span>
+            </div>
+            <div class="results-meta-item">
+              <span class="results-meta-label" id="resultDateLabel">Assessment Date</span>
+              <span class="results-meta-value" id="resultAssessmentDate">—</span>
+            </div>
+          </div>
+
+          <div class="results-hero">
+            <div class="gauge-wrap">
+              <svg id="scoreGaugeSvg" viewBox="0 0 200 200" class="gauge-svg"></svg>
+              <span id="creditScoreValue" class="visually-hidden"></span>
+              <div class="gauge-caption" id="creditScoreLabel">Credit Score</div>
+            </div>
+
+            <div class="results-grid">
+              <div class="result-tile">
+                <span class="result-tile-label" id="riskGradeLabel">Risk Grade</span>
+                <span id="riskGradeValue" class="result-badge">—</span>
+              </div>
+              <div class="result-tile">
+                <span class="result-tile-label" id="recommendedLimitLabel">Recommended Credit Limit</span>
+                <span id="recommendedLimitValue" class="result-tile-value">—</span>
+              </div>
+              <div class="result-tile">
+                <span class="result-tile-label" id="recommendedTermLabel">Recommended Payment Term</span>
+                <span id="recommendedTermValue" class="result-tile-value">—</span>
+              </div>
+              <div class="result-tile">
+                <span class="result-tile-label" id="finalDecisionLabel">Final Decision</span>
+                <span id="finalDecisionValue" class="decision-badge">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="explanation-panel">
+            <h3 id="explanationTitle" class="explanation-title">Why this decision?</h3>
+            <div class="explanation-columns">
+              <div id="strengthsList" class="explanation-block"></div>
+              <div id="weaknessesList" class="explanation-block"></div>
+              <div id="riskDriversList" class="explanation-block"></div>
+            </div>
+          </div>
+
+          <div class="screen-actions">
+            <button id="btnBackTo2" type="button" class="btn btn-secondary">Back</button>
+            <button id="btnExportPdf" type="button" class="btn btn-outline">Export PDF</button>
+            <button id="btnStartOver" type="button" class="btn btn-primary">Start New Assessment</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="app-footer">
+      <p id="footerNote">This tool provides an automated preliminary assessment. Final credit decisions should be reviewed by an authorized credit officer.</p>
+    </footer>
+
+  </div>
+
+  <script src="print.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
