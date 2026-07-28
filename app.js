@@ -61,6 +61,7 @@ const translations = {
     totalEquity: "Total Equity (EGP)",
     revenue: "Revenue (EGP)",
     netIncome: "Net Income (EGP)",
+    taxExpense: "Tax Expense (EGP)",
     interestExpense: "Interest Expense (EGP)",
     depreciationAmortization: "Depreciation & Amortization (EGP)",
     optionalTag: "optional — improves accuracy",
@@ -225,6 +226,7 @@ const translations = {
     revenue: "الإيرادات (جنيه)",
     netIncome: "صافي الربح (جنيه)",
     interestExpense: "مصروفات الفوائد (جنيه)",
+    taxExpense: "مصروفات الضرائب (جنيه)",
     depreciationAmortization: "الاستهلاك والإطفاء (جنيه)",
     optionalTag: "اختياري — يحسّن دقة التقدير",
     operatingCashFlow: "التدفق النقدي التشغيلي",
@@ -457,6 +459,7 @@ const MODEL_FIELDS = {
         numberField("totalEquity", "totalEquity"),
         numberField("revenue", "revenue"),
         numberField("netIncome", "netIncome"),
+        numberField("taxExpense", "taxExpense", { optional: true }), 
         numberField("interestExpense", "interestExpense", { optional: true }),
         numberField("depreciationAmortization", "depreciationAmortization", { optional: true }),
         selectField("operatingCashFlow", "operatingCashFlow", "cashFlow"),
@@ -668,13 +671,13 @@ function limitModelC(v, grade) {
   const ar = num(v.accountsReceivable);
   const inventory = num(v.inventory);
   const std = num(v.shortTermDebt);
-  const liquidityBasedLimit = cash + ar * 0.7 + inventory * 0.3 - std;
-
+  const liquidityBasedLimit = Math.max(0, cash + ar * 0.7 + inventory * 0.3 - std);
   const netIncome = num(v.netIncome);
+  const taxExpense = num(v.taxExpense); 
   const interestExpense = num(v.interestExpense);
   const depreciationAmortization = num(v.depreciationAmortization);
-  const approxEbitda = netIncome + interestExpense + depreciationAmortization;
-  const ebitdaIsPartial = interestExpense === 0 && depreciationAmortization === 0;
+  const approxEbitda = netIncome + taxExpense + interestExpense + depreciationAmortization;
+  const ebitdaIsPartial = interestExpense === 0 && depreciationAmortization === 0 && taxExpense === 0;
 
   let incomePct = 0.25;
   if (grade === "A") incomePct = 0.5;
