@@ -47,11 +47,8 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
   // ---------- Explanation cleanup ----------
   function semanticFamily(key) {
     const map = {
-      // payment history family (keep best one by order of insertion/priority)
       expExcellentPaymentHistory: "paymentHistoryPositive",
       expGoodPaymentHistory: "paymentHistoryPositive",
-
-      // request/capacity family (if both somehow appear, keep first by priority)
       expRequestWithinCapacity: "requestCapacity",
       expRequestExceedsCapacity: "requestCapacity",
     };
@@ -59,7 +56,6 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
   }
 
   function dedupeByPriorityAndMeaning(expl) {
-    // Priority: drivers > weaknesses > strengths
     const usedExact = new Set();
     const usedFamily = new Set();
 
@@ -108,6 +104,12 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
   const decisionColor = decisionColors[r.decision] || "#2D5C8C";
 
   const printBtnLabel = isRtl ? "🖨️ طباعة / حفظ PDF" : "🖨️ Print / Save as PDF";
+  const printHeaderTitle = isRtl
+    ? "نظام تقييم منح ائتمان للعملاء الجدد - شركة بي تك للتجارة والتوزيع"
+    : "New Customer Credit Grant Assessment System - B.TECH for Trading & Distribution";
+  const printFooterCredit = isRtl
+    ? "إعداد وتصميم: حسين ابو العزايم - قطاع التحليل والتخطيط المالي"
+    : "Prepared and Designed by: Hussein Abu El-Azayem - Financial Analysis & Planning Sector";
 
   const html = `<!DOCTYPE html>
 <html lang="${state.lang}" dir="${dir}">
@@ -117,30 +119,66 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Tajawal:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    @page { size: A4; margin: 12mm; }
-
+    @page { size: A4 landscape; margin: 10mm; }
+    html, body { margin: 0; padding: 0; }
     body {
       font-family: ${fontFamily};
       background: #fff;
       color: #1B2430;
-      padding: 28px 36px;
-      font-size: 13px;
+      padding: 20px 26px 16px;
+      font-size: 12px;
       direction: ${dir};
+      border: 1px solid #D8E3D1;
+      border-radius: 16px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
     .header {
-      background: #0F2A4A;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 8% 10%, rgba(242, 201, 76, 0.24), transparent 34%),
+        radial-gradient(circle at 92% 0%, rgba(240, 138, 43, 0.24), transparent 30%),
+        linear-gradient(135deg, #344B2A 0%, #4F6F3F 100%);
       color: #fff;
-      padding: 16px 22px;
-      border-radius: 10px;
+      padding: 15px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 12px;
       margin-bottom: 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      direction: ${dir};
+      flex-shrink: 0;
     }
-    .header-title { font-size: 17px; font-weight: 800; }
-    .header-sub   { font-size: 11px; opacity: 0.78; margin-top: 3px; }
+    .header::before {
+      content: "";
+      position: absolute;
+      inset-inline-start: 0;
+      top: 0;
+      width: 7px;
+      height: 100%;
+      background: linear-gradient(180deg, #F2C94C 0%, #E67A22 100%);
+    }
+    .header-title { font-size: 17px; font-weight: 800; line-height: 1.35; position: relative; z-index: 1; }
+    .header-kicker { font-family: Inter, sans-serif; font-size: 8px; font-weight: 800; letter-spacing: .12em; opacity: .72; margin-bottom: 4px; position: relative; z-index: 1; }
+    .header-mark { display: flex; align-items: center; justify-content: center; width: 70px; height: 38px; flex: 0 0 70px; border: 1px solid rgba(255,255,255,.48); border-radius: 9px; font-family: Inter, sans-serif; font-size: 13px; font-weight: 800; letter-spacing: .05em; position: relative; z-index: 1; }
+
+    .content {
+      flex: 1;
+      margin-bottom: 16px;
+    }
 
     .meta-row {
       display: flex;
@@ -151,6 +189,9 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       border-radius: 8px;
       padding: 10px 16px;
       margin-bottom: 16px;
+      direction: ${dir};
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
     .meta-item { display: flex; flex-direction: column; gap: 2px; }
     .meta-label {
@@ -164,6 +205,8 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-bottom: 14px;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
 
     .score-tile {
@@ -172,6 +215,9 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       border-radius: 8px;
       padding: 12px 14px;
       min-height: 84px;
+      direction: ${dir};
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
     .score-tile-label {
       font-size: 9px; font-weight: 700; color: #6B7785;
@@ -204,6 +250,10 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       font-size: 10px;
       line-height: 1.55;
       font-weight: 600;
+      direction: ${dir};
+      text-align: ${dir === "rtl" ? "right" : "left"};
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
 
     .explanation-grid {
@@ -211,12 +261,17 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
       margin-bottom: 20px;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
     .exp-block {
       background: #F7F9FB;
       border: 1px solid #E3E8EF;
       border-radius: 8px;
       padding: 12px;
+      direction: ${dir};
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
     .exp-heading {
       font-size: 10px;
@@ -225,6 +280,7 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       display: flex;
       align-items: center;
       gap: 5px;
+      ${dir === "rtl" ? "flex-direction: row-reverse;" : ""}
     }
     .exp-heading::before {
       content: "";
@@ -245,6 +301,8 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       padding-inline-start: 10px;
       position: relative;
       margin-bottom: 4px;
+      text-align: ${dir === "rtl" ? "right" : "left"};
+      direction: ${dir};
     }
     ul li::before {
       content: "";
@@ -257,16 +315,28 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       background: #6B7785;
     }
 
-    .footer-note {
+    .footer {
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
       font-size: 9px;
       color: #6B7785;
-      text-align: center;
-      border-top: 1px solid #E3E8EF;
-      padding-top: 12px;
+      text-align: ${dir === "rtl" ? "right" : "left"};
+      border-top: 1px solid #DFE8D9;
+      padding-top: 10px;
+      margin-top: 14px;
       line-height: 1.6;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      direction: ${dir};
+      ${dir === "rtl" ? "flex-direction: row-reverse;" : ""}
     }
+    .footer-credit { font-weight: 700; color: #66745F; white-space: nowrap; }
+    .footer-disclaimer { max-width: 54%; }
 
-    .print-bar { text-align: center; padding: 20px 0 8px; }
+    .print-bar { text-align: center; padding: 20px 0 8px; flex-shrink: 0; }
     .print-btn {
       background: #0F2A4A;
       color: #fff;
@@ -289,81 +359,91 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
 
     @media print {
       .print-bar { display: none !important; }
+      body { border: none; }
     }
   </style>
 </head>
 <body>
-
-  <div class="header">
-    <div>
-      <div class="header-title">B.TECH Credit Assessment</div>
-      <div class="header-sub">${t("appSubtitle")}</div>
+  <div class="container">
+    <div class="header">
+      <div>
+        <div class="header-kicker">B.TECH | CREDIT ASSESSMENT</div>
+        <div class="header-title">${printHeaderTitle}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;direction:${dir}">
+        <div style="text-align:${dir === "rtl" ? "right" : "left"}">
+          <div style="font-size:9px;opacity:0.75">${t("resultAssessmentDate")}</div>
+          <div style="font-size:11px;font-weight:700">${assessmentDate}</div>
+        </div>
+        <div class="header-mark">B.TECH</div>
+      </div>
     </div>
-    <div style="text-align:end">
-      <div style="font-size:10px;opacity:0.75">${t("resultAssessmentDate")}</div>
-      <div style="font-size:12px;font-weight:700">${assessmentDate}</div>
+
+    <div class="content">
+      <div class="meta-row">
+        <div class="meta-item">
+          <span class="meta-label">${t("resultCustomer")}</span>
+          <span class="meta-value">${customerName}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">${t("creditScore")}</span>
+          <span class="meta-value">${r.score} / 100</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">${t("riskGrade")}</span>
+          <span class="meta-value">${t("grade" + r.grade)}</span>
+        </div>
+      </div>
+
+      <div class="scores-grid">
+        <div class="score-tile">
+          <div class="score-tile-label">${t("finalDecision")}</div>
+          <span class="badge" style="background:${decisionColor}22;color:${decisionColor}">${decisionText}</span>
+        </div>
+        <div class="score-tile">
+          <div class="score-tile-label">${t("requestedLimitDisplay")}</div>
+          <div class="score-tile-value">${requestedLimitText}</div>
+        </div>
+        <div class="score-tile">
+          <div class="score-tile-label">${t("approvedLimitDisplay")}</div>
+          <div class="score-tile-value">${approvedLimitText}</div>
+        </div>
+        <div class="score-tile">
+          <div class="score-tile-label">${t("initialLimitDisplay")}</div>
+          <div class="score-tile-value">${initialLimitText}</div>
+        </div>
+      </div>
+
+      ${r.decision !== "rejected" ? `<div class="rule-note">${t("initialLimitRuleNote")}</div>` : ""}
+
+      <div class="scores-grid" style="margin-top:0">
+        <div class="score-tile" style="grid-column: span 4;">
+          <div class="score-tile-label">${t("recommendedTerm")}</div>
+          <div class="score-tile-value">${termText}</div>
+        </div>
+      </div>
+
+      <div class="explanation-grid">
+        <div class="exp-block">
+          <div class="exp-heading exp-good">${t("strengths")}</div>
+          <ul>${renderList(cleanedExplanation.strengths)}</ul>
+        </div>
+        <div class="exp-block">
+          <div class="exp-heading exp-bad">${t("weaknesses")}</div>
+          <ul>${renderList(cleanedExplanation.weaknesses)}</ul>
+        </div>
+        <div class="exp-block">
+          <div class="exp-heading exp-warn">${t("riskDrivers")}</div>
+          <ul>${renderList(cleanedExplanation.drivers)}</ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span class="footer-credit">${printFooterCredit}</span>
+      <span class="footer-disclaimer">${t("footerNote")}</span>
     </div>
   </div>
-
-  <div class="meta-row">
-    <div class="meta-item">
-      <span class="meta-label">${t("resultCustomer")}</span>
-      <span class="meta-value">${customerName}</span>
-    </div>
-    <div class="meta-item">
-      <span class="meta-label">${t("creditScore")}</span>
-      <span class="meta-value">${r.score} / 100</span>
-    </div>
-    <div class="meta-item">
-      <span class="meta-label">${t("riskGrade")}</span>
-      <span class="meta-value">${t("grade" + r.grade)}</span>
-    </div>
-  </div>
-
-  <div class="scores-grid">
-    <div class="score-tile">
-      <div class="score-tile-label">${t("finalDecision")}</div>
-      <span class="badge" style="background:${decisionColor}22;color:${decisionColor}">${decisionText}</span>
-    </div>
-    <div class="score-tile">
-      <div class="score-tile-label">${t("requestedLimitDisplay")}</div>
-      <div class="score-tile-value">${requestedLimitText}</div>
-    </div>
-    <div class="score-tile">
-      <div class="score-tile-label">${t("approvedLimitDisplay")}</div>
-      <div class="score-tile-value">${approvedLimitText}</div>
-    </div>
-    <div class="score-tile">
-      <div class="score-tile-label">${t("initialLimitDisplay")}</div>
-      <div class="score-tile-value">${initialLimitText}</div>
-    </div>
-  </div>
-
-  ${r.decision !== "rejected" ? `<div class="rule-note">${t("initialLimitRuleNote")}</div>` : ""}
-
-  <div class="scores-grid" style="margin-top:0">
-    <div class="score-tile" style="grid-column: span 4;">
-      <div class="score-tile-label">${t("recommendedTerm")}</div>
-      <div class="score-tile-value">${termText}</div>
-    </div>
-  </div>
-
-  <div class="explanation-grid">
-    <div class="exp-block">
-      <div class="exp-heading exp-good">${t("strengths")}</div>
-      <ul>${renderList(cleanedExplanation.strengths)}</ul>
-    </div>
-    <div class="exp-block">
-      <div class="exp-heading exp-bad">${t("weaknesses")}</div>
-      <ul>${renderList(cleanedExplanation.weaknesses)}</ul>
-    </div>
-    <div class="exp-block">
-      <div class="exp-heading exp-warn">${t("riskDrivers")}</div>
-      <ul>${renderList(cleanedExplanation.drivers)}</ul>
-    </div>
-  </div>
-
-  <div class="footer-note">${t("footerNote")}</div>
 
   <div class="print-bar">
     <button class="print-btn" onclick="window.print()">
@@ -399,3 +479,195 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
     );
   }
 }
+
+
+/* ----------------------- DIRECT PDF DOWNLOAD ----------------------- */
+
+function downloadAssessmentPdf(state, t, formatCurrency, capitalize) {
+  const isRtl = state.lang === "ar";
+  const customerNameKey = state.customerType === "sme" ? "companyName" : "customerName";
+  const customerName = state.values[customerNameKey] || "customer";
+  const datePart = new Date().toISOString().slice(0, 10);
+  const safeCustomerName = String(customerName)
+    .trim()
+    .replace(/[^\p{L}\p{N}_-]+/gu, "-")
+    .replace(/^-+|-+$/g, "") || "customer";
+  const fileName = `credit-assessment-${safeCustomerName}-${datePart}.pdf`;
+  const reportHeaderTitle = isRtl
+    ? "نظام تقييم منح ائتمان للعملاء الجدد - شركة بي تك للتجارة والتوزيع"
+    : "New Customer Credit Grant Assessment System - B.TECH for Trading & Distribution";
+  const reportFooterCredit = isRtl
+    ? "إعداد وتصميم: حسين ابو العزايم - قطاع التحليل والتخطيط المالي"
+    : "Prepared and Designed by: Hussein Abu El-Azayem - Financial Analysis & Planning Sector";
+
+  if (typeof html2pdf !== "function") {
+    alert(
+      isRtl
+        ? "تعذر تحميل مكوّن PDF. يرجى تحديث الصفحة ثم المحاولة مرة أخرى."
+        : "The PDF component could not be loaded. Please refresh the page and try again."
+    );
+    return;
+  }
+
+  const source = document.querySelector("#screen3 .results-card");
+  if (!source) {
+    alert(
+      isRtl
+        ? "لا توجد نتائج جاهزة للتصدير. يرجى إجراء التقييم أولًا."
+        : "No assessment results are ready to export. Please complete the assessment first."
+    );
+    return;
+  }
+
+  const downloadButton = document.getElementById("btnDownloadPdf");
+  const originalLabel = downloadButton ? downloadButton.textContent : "";
+  if (downloadButton) {
+    downloadButton.disabled = true;
+    downloadButton.textContent = isRtl ? "جارٍ تجهيز PDF…" : "Preparing PDF…";
+  }
+
+  const exportWidth = 1040;
+  const staging = document.createElement("div");
+  staging.className = "pdf-staging";
+  staging.dir = isRtl ? "rtl" : "ltr";
+  staging.lang = state.lang;
+  staging.style.cssText = [
+    "position: fixed",
+    "left: 0",
+    "top: 0",
+    `width: ${exportWidth}px`,
+    "background: #ffffff",
+    "z-index: -1",
+    "padding: 0",
+    "margin: 0",
+  ].join(";");
+
+  const report = source.cloneNode(true);
+  report.dir = isRtl ? "rtl" : "ltr";
+  report.style.direction = isRtl ? "rtl" : "ltr";
+  report.style.width = `${exportWidth}px`;
+  report.style.maxWidth = "none";
+  report.style.boxSizing = "border-box";
+  report.style.transform = "scale(0.74)";
+  report.style.transformOrigin = "top left";
+  report.classList.add("pdf-export-root", "pdf-landscape-export");
+  if (isRtl) report.classList.add("pdf-arabic-export");
+
+  const reportHeader = document.createElement("header");
+  reportHeader.className = "pdf-report-header";
+  reportHeader.dir = isRtl ? "rtl" : "ltr";
+  reportHeader.innerHTML = `
+    <div class="pdf-report-header-accent"></div>
+    <div class="pdf-report-header-copy">
+      <div class="pdf-report-header-kicker">B.TECH | CREDIT ASSESSMENT</div>
+      <div class="pdf-report-header-title"></div>
+    </div>
+    <div class="pdf-report-header-mark">B.TECH</div>
+  `;
+  reportHeader.querySelector(".pdf-report-header-title").textContent = reportHeaderTitle;
+  report.prepend(reportHeader);
+
+  const reportFooter = document.createElement("footer");
+  reportFooter.className = "pdf-report-footer";
+  reportFooter.dir = isRtl ? "rtl" : "ltr";
+  reportFooter.innerHTML = `
+    <span class="pdf-report-footer-line"></span>
+    <span class="pdf-report-footer-text"></span>
+    <span class="pdf-report-footer-page">B.TECH • CREDIT ASSESSMENT</span>
+  `;
+  reportFooter.querySelector(".pdf-report-footer-text").textContent = reportFooterCredit;
+  report.appendChild(reportFooter);
+
+  report.querySelectorAll(".screen-actions").forEach((element) => element.remove());
+  report.querySelectorAll(".form-error-banner").forEach((element) => element.remove());
+
+  const gaugeSvg = report.querySelector("#scoreGaugeSvg");
+  if (gaugeSvg) {
+    const gaugeFallback = document.createElement("div");
+    gaugeFallback.className = "pdf-score-circle";
+    gaugeFallback.setAttribute("aria-label", `${state.result?.score ?? 0} / 100`);
+
+    const scoreValue = document.createElement("span");
+    scoreValue.className = "pdf-score-value";
+    scoreValue.textContent = String(state.result?.score ?? 0);
+
+    const scoreMax = document.createElement("span");
+    scoreMax.className = "pdf-score-max";
+    scoreMax.textContent = "/ 100";
+
+    gaugeFallback.append(scoreValue, scoreMax);
+    gaugeSvg.replaceWith(gaugeFallback);
+  }
+
+  staging.appendChild(report);
+  document.body.appendChild(staging);
+
+  const options = {
+    margin: [10, 10, 10, 10],
+    filename: fileName,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      foreignObjectRendering: isRtl,
+      windowWidth: exportWidth,
+      x: 0,
+      y: 0,
+      scrollX: 0,
+      scrollY: 0,
+    },
+    jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
+    pagebreak: {
+      mode: ["css", "legacy"],
+      avoid: [".results-meta", ".result-tile", ".explanation-block"],
+    },
+  };
+
+  function removeTrailingBlankFragments(pdf) {
+    while (pdf.getNumberOfPages() > 1) {
+      const page = pdf.internal?.pages?.[pdf.getNumberOfPages()] || [];
+      const imageHeights = page
+        .map((line) => {
+          const match = typeof line === "string" && line.match(/0 0 ([\d.]+) [\d.]+ [\d.]+ [\d.]+ cm/);
+          return match ? Number(match[1]) : 0;
+        })
+        .filter((height) => height > 0);
+      const maxImageHeight = imageHeights.length ? Math.max(...imageHeights) : 0;
+      if (maxImageHeight > 1) break;
+      pdf.deletePage(pdf.getNumberOfPages());
+    }
+  }
+
+  html2pdf()
+    .set(options)
+    .from(report)
+    .toCanvas()
+    .toPdf()
+    .get("pdf")
+    .then((pdf) => {
+      removeTrailingBlankFragments(pdf);
+      pdf.save(fileName);
+      staging.remove();
+      if (downloadButton) {
+        downloadButton.disabled = false;
+        downloadButton.textContent = originalLabel;
+      }
+    })
+    .catch((error) => {
+      console.error("PDF download failed:", error);
+      staging.remove();
+      if (downloadButton) {
+        downloadButton.disabled = false;
+        downloadButton.textContent = originalLabel;
+      }
+      alert(
+        isRtl
+          ? "حدث خطأ أثناء إنشاء ملف PDF. يرجى المحاولة مرة أخرى."
+          : "Something went wrong while creating the PDF file. Please try again."
+      );
+    });
+}
+
+/* ----------------------- END DIRECT PDF DOWNLOAD ----------------------- */
