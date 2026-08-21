@@ -26,6 +26,7 @@ const translations = {
     calculate: "Calculate Assessment",
     startOver: "Start New Assessment",
     exportPdf: "Export PDF",
+    downloadPdf: "Download PDF",
 
     sectionBasicInfo: "Basic Information",
     sectionCreditTerms: "Requested Credit Terms",
@@ -190,6 +191,7 @@ const translations = {
     calculate: "إجراء التقييم",
     startOver: "تقييم جديد",
     exportPdf: "تصدير PDF",
+    downloadPdf: "تنزيل PDF",
 
     sectionBasicInfo: "المعلومات الأساسية",
     sectionCreditTerms: "شروط الائتمان المطلوبة",
@@ -978,6 +980,7 @@ function applyLanguage() {
   document.getElementById("btnNextTo3").textContent = t("calculate");
   document.getElementById("btnBackTo2").textContent = t("back");
   document.getElementById("btnExportPdf").textContent = t("exportPdf");
+  document.getElementById("btnDownloadPdf").textContent = t("downloadPdf");
   document.getElementById("btnStartOver").textContent = t("startOver");
 
   renderCurrentStep();
@@ -1270,13 +1273,16 @@ function renderScreen3() {
       initialValueEl.className = "result-tile-value";
     }
 
+    gradeBadge.parentElement.querySelectorAll(".decision-note").forEach((element) => element.remove());
+    initialValueEl.parentElement.querySelectorAll(".initial-limit-note").forEach((element) => element.remove());
+
     gradeBadge.insertAdjacentHTML(
       "afterend",
-      `<div class="limit-range-note" style="margin-top:6px">${t("finalDecision")}: ${t(`decision${capitalize(r.decision)}`)}</div>`
+      `<div class="limit-range-note decision-note" style="margin-top:6px">${t("finalDecision")}: ${t(`decision${capitalize(r.decision)}`)}</div>`
     );
 
     if (r.decision !== "rejected") {
-      initialValueEl.insertAdjacentHTML("afterend", `<span class="limit-range-note">${t("initialLimitRuleNote")}</span>`);
+      initialValueEl.insertAdjacentHTML("afterend", `<span class="limit-range-note initial-limit-note">${t("initialLimitRuleNote")}</span>`);
     }
 
     document.getElementById("explanationTitle").textContent = t("explanationTitle");
@@ -1408,10 +1414,17 @@ function initEventListeners() {
 
   const pdfBtn = document.getElementById("btnExportPdf");
   if (pdfBtn) pdfBtn.addEventListener("click", exportResultsToPdf);
+
+  const downloadPdfBtn = document.getElementById("btnDownloadPdf");
+  if (downloadPdfBtn) downloadPdfBtn.addEventListener("click", downloadResultsToPdf);
 }
 
 function exportResultsToPdf() {
   printAssessmentWindow(state, t, formatCurrency, capitalize);
+}
+
+function downloadResultsToPdf() {
+  downloadAssessmentPdf(state, t, formatCurrency, capitalize);
 }
 
 /* ----------------------- INIT ----------------------- */
