@@ -89,7 +89,7 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
     : "New Customer Credit Grant Assessment System - B.TECH for Trading & Distribution";
   const printFooterCredit = isRtl
     ? "إعداد وتصميم: حسين ابو العزايم - قطاع التحليل والتخطيط المالي"
-    : "Prepared and Designed by: Hussein Abu El-Azayem - Financial Analysis & Planning Sector";
+    : "Prepared and Designed by: Hussein Abo Elazaim - Financial Planning & Analysis Sector";
 
   const html = `<!DOCTYPE html>
 <html lang="${state.lang}" dir="${dir}">
@@ -441,10 +441,10 @@ function downloadAssessmentPdf(state, t, formatCurrency, capitalize) {
   const safeCustomerName = String(customerName).trim().replace(/[^\p{L}\p{N}_-]+/gu, "-").replace(/^-+|-+$/g, "") || "customer";
   const fileName = `credit-assessment-${safeCustomerName}-${datePart}.pdf`;
   const reportHeaderTitle = isRtl ? "نظام تقييم منح ائتمان للعملاء الجدد - شركة بي تك للتجارة والتوزيع" : "New Customer Credit Grant Assessment System - B.TECH for Trading & Distribution";
-  const reportFooterCredit = isRtl ? "إعداد وتصميم: حسين ابو العزايم - قطاع التحليل والتخطيط المالي" : "Prepared and Designed by: Hussein Abu El-Azayem - Financial Analysis & Planning Sector";
+  const reportFooterCredit = isRtl ? "إعداد وتصميم: حسين ابو العزايم - قطاع التحليل والتخطيط المالي" : "Prepared and Designed by: Hussein Abo Elazaim - Financial Planning & Analysis Sector";
 
   if (typeof html2pdf !== "function") {
-    alert(isRtl ? "تعذر تحميل مكوّن PDF." : "PDF component not loaded.");
+    alert(isRtl ? "تعذر تحميل مكوّن PDF." : "PDF component not loaded.");a
     return;
   }
 
