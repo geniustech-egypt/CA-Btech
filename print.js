@@ -88,7 +88,7 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
     ? "نظام تقييم منح ائتمان للعملاء الجدد - شركة بي تك للتجارة والتوزيع"
     : "New Customer Credit Grant Assessment System - B.TECH for Trading & Distribution";
   const printFooterCredit = isRtl
-    ? "إعداد وتصميم: حسين ابو العزايم - قطاع التحليل والتخطيط المالي"
+    ? "إعداد وتصميم: حسين ابو العزايم - قطاع التخطيط والتحليل المالي"
     : "Prepared and Designed by: Hussein Abo Elazaim - Financial Planning & Analysis Sector";
 
   const html = `<!DOCTYPE html>
@@ -101,31 +101,26 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
     * { box-sizing: border-box; margin: 0; padding: 0; }
     @page { 
       size: A4 landscape; 
-      margin: 10mm 10mm 25mm 10mm;
-    }
-    @page :footer {
-      content: '';
+      margin: 8mm 8mm 18mm 8mm;
     }
     
     html, body { 
       margin: 0; 
-      padding: 0; 
-      height: 100%;
-      width: 100%;
+      padding: 0;
     }
     
     body {
       font-family: ${fontFamily};
       background: #fff;
       color: #1B2430;
-      font-size: 12px;
+      font-size: 11px;
       direction: ${dir};
       padding: 0;
+      line-height: 1.3;
     }
 
     .main {
-      padding: 20px 26px 0;
-      min-height: calc(100vh - 50px);
+      padding: 12px 16px 0;
     }
 
     .header {
@@ -133,14 +128,14 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       overflow: hidden;
       background: radial-gradient(circle at 8% 10%, rgba(242, 201, 76, 0.24), transparent 34%), radial-gradient(circle at 92% 0%, rgba(240, 138, 43, 0.24), transparent 30%), linear-gradient(135deg, #344B2A 0%, #4F6F3F 100%);
       color: #fff;
-      padding: 15px 20px;
+      padding: 10px 14px;
       border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 12px;
-      margin-bottom: 16px;
+      border-radius: 8px;
+      margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
       page-break-after: avoid;
       page-break-inside: avoid;
       direction: ${dir};
@@ -151,68 +146,68 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       position: absolute;
       inset-inline-start: 0;
       top: 0;
-      width: 7px;
+      width: 5px;
       height: 100%;
       background: linear-gradient(180deg, #F2C94C 0%, #E67A22 100%);
     }
     
-    .header-title { font-size: 17px; font-weight: 800; line-height: 1.35; position: relative; z-index: 1; }
-    .header-kicker { font-family: Inter, sans-serif; font-size: 8px; font-weight: 800; letter-spacing: .12em; opacity: .72; margin-bottom: 4px; position: relative; z-index: 1; }
-    .header-mark { display: flex; align-items: center; justify-content: center; width: 70px; height: 38px; border: 1px solid rgba(255,255,255,.48); border-radius: 9px; font-family: Inter, sans-serif; font-size: 13px; font-weight: 800; letter-spacing: .05em; position: relative; z-index: 1; }
+    .header-title { font-size: 13px; font-weight: 800; line-height: 1.25; position: relative; z-index: 1; }
+    .header-kicker { font-family: Inter, sans-serif; font-size: 7px; font-weight: 800; letter-spacing: .1em; opacity: .72; margin-bottom: 3px; position: relative; z-index: 1; }
+    .header-mark { display: flex; align-items: center; justify-content: center; width: 50px; height: 30px; border: 1px solid rgba(255,255,255,.48); border-radius: 6px; font-family: Inter, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .05em; position: relative; z-index: 1; }
 
     .meta-row {
       display: flex;
-      gap: 22px;
+      gap: 14px;
       flex-wrap: wrap;
       background: #F7F9FB;
       border: 1px solid #E3E8EF;
-      border-radius: 8px;
-      padding: 10px 16px;
-      margin-bottom: 16px;
+      border-radius: 6px;
+      padding: 6px 10px;
+      margin-bottom: 8px;
       direction: ${dir};
       page-break-inside: avoid;
     }
-    .meta-item { display: flex; flex-direction: column; gap: 2px; }
-    .meta-label { font-size: 10px; font-weight: 700; color: #6B7785; text-transform: uppercase; letter-spacing: 0.04em; }
-    .meta-value { font-size: 13px; font-weight: 700; color: #0F2A4A; }
+    .meta-item { display: flex; flex-direction: column; gap: 1px; }
+    .meta-label { font-size: 8px; font-weight: 700; color: #6B7785; text-transform: uppercase; letter-spacing: 0.03em; }
+    .meta-value { font-size: 11px; font-weight: 700; color: #0F2A4A; }
 
     .scores-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 14px;
+      gap: 6px;
+      margin-bottom: 8px;
       page-break-inside: avoid;
     }
 
     .score-tile {
       background: #F7F9FB;
       border: 1px solid #E3E8EF;
-      border-radius: 8px;
-      padding: 12px 14px;
-      min-height: 84px;
+      border-radius: 6px;
+      padding: 8px 10px;
+      min-height: auto;
       direction: ${dir};
       page-break-inside: avoid;
     }
-    .score-tile-label { font-size: 9px; font-weight: 700; color: #6B7785; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.04em; line-height: 1.35; }
-    .score-tile-value { font-size: 14px; font-weight: 800; color: #0F2A4A; line-height: 1.4; word-break: break-word; }
+    .score-tile-label { font-size: 8px; font-weight: 700; color: #6B7785; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.03em; line-height: 1.2; }
+    .score-tile-value { font-size: 12px; font-weight: 800; color: #0F2A4A; line-height: 1.2; word-break: break-word; }
 
     .badge {
       display: inline-block;
-      padding: 3px 10px;
+      padding: 2px 8px;
       border-radius: 999px;
-      font-size: 11px;
+      font-size: 9px;
       font-weight: 700;
     }
 
     .rule-note {
-      margin: 0 0 16px;
-      padding: 10px 12px;
-      border-radius: 8px;
+      margin: 0 0 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
       border: 1px solid #EAD9AE;
       background: #FFF9E7;
       color: #7A6220;
-      font-size: 10px;
-      line-height: 1.55;
+      font-size: 8px;
+      line-height: 1.4;
       font-weight: 600;
       direction: ${dir};
       text-align: ${dir === "rtl" ? "right" : "left"};
@@ -222,33 +217,33 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
     .explanation-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 20px;
+      gap: 6px;
+      margin-bottom: 10px;
       page-break-inside: avoid;
     }
     
     .exp-block {
       background: #F7F9FB;
       border: 1px solid #E3E8EF;
-      border-radius: 8px;
-      padding: 12px;
+      border-radius: 6px;
+      padding: 8px;
       direction: ${dir};
       page-break-inside: avoid;
     }
     
     .exp-heading {
-      font-size: 10px;
+      font-size: 8px;
       font-weight: 700;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       ${dir === "rtl" ? "flex-direction: row-reverse;" : ""}
     }
     .exp-heading::before {
       content: "";
-      width: 7px;
-      height: 7px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       flex-shrink: 0;
     }
@@ -258,12 +253,12 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
 
     ul { list-style: none; }
     ul li {
-      font-size: 10px;
+      font-size: 8px;
       color: #1B2430;
-      line-height: 1.5;
-      padding-inline-start: 10px;
+      line-height: 1.3;
+      padding-inline-start: 8px;
       position: relative;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
       text-align: ${dir === "rtl" ? "right" : "left"};
       direction: ${dir};
     }
@@ -271,9 +266,9 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       content: "";
       position: absolute;
       inset-inline-start: 0;
-      top: 0.5em;
-      width: 4px;
-      height: 4px;
+      top: 0.4em;
+      width: 3px;
+      height: 3px;
       border-radius: 50%;
       background: #6B7785;
     }
@@ -282,30 +277,30 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 18px;
-      font-size: 9px;
+      gap: 12px;
+      font-size: 8px;
       color: #6B7785;
       text-align: ${dir === "rtl" ? "right" : "left"};
       border-top: 1px solid #DFE8D9;
-      padding: 10px 0;
-      line-height: 1.6;
+      padding: 6px 0;
+      line-height: 1.4;
       direction: ${dir};
       ${dir === "rtl" ? "flex-direction: row-reverse;" : ""}
-      margin-top: 20px;
+      margin-top: 10px;
       page-break-inside: avoid;
     }
     
     .footer-credit { font-weight: 700; color: #66745F; white-space: nowrap; }
-    .footer-disclaimer { max-width: 54%; }
+    .footer-disclaimer { max-width: 55%; }
 
-    .print-bar { text-align: center; padding: 20px 0 8px; }
+    .print-bar { text-align: center; padding: 15px 0; }
     .print-btn {
       background: #0F2A4A;
       color: #fff;
       border: none;
       border-radius: 999px;
-      padding: 13px 40px;
-      font-size: 15px;
+      padding: 10px 30px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       font-family: ${fontFamily};
@@ -319,7 +314,6 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
     @media print {
       .print-bar { display: none !important; }
       body { border: none; }
-      .main { padding-bottom: 30px; }
     }
   </style>
 </head>
@@ -331,10 +325,10 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
         <div class="header-kicker">B.TECH | CREDIT ASSESSMENT</div>
         <div class="header-title">${printHeaderTitle}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:16px;direction:${dir}">
+      <div style="display:flex;align-items:center;gap:10px;direction:${dir}">
         <div style="text-align:${dir === "rtl" ? "right" : "left"}">
-          <div style="font-size:9px;opacity:0.75">${t("resultAssessmentDate")}</div>
-          <div style="font-size:11px;font-weight:700">${assessmentDate}</div>
+          <div style="font-size:7px;opacity:0.75">${t("resultAssessmentDate")}</div>
+          <div style="font-size:10px;font-weight:700">${assessmentDate}</div>
         </div>
         <div class="header-mark">B.TECH</div>
       </div>
@@ -441,10 +435,10 @@ function downloadAssessmentPdf(state, t, formatCurrency, capitalize) {
   const safeCustomerName = String(customerName).trim().replace(/[^\p{L}\p{N}_-]+/gu, "-").replace(/^-+|-+$/g, "") || "customer";
   const fileName = `credit-assessment-${safeCustomerName}-${datePart}.pdf`;
   const reportHeaderTitle = isRtl ? "نظام تقييم منح ائتمان للعملاء الجدد - شركة بي تك للتجارة والتوزيع" : "New Customer Credit Grant Assessment System - B.TECH for Trading & Distribution";
-  const reportFooterCredit = isRtl ? "إعداد وتصميم: حسين ابو العزايم - قطاع التحليل والتخطيط المالي" : "Prepared and Designed by: Hussein Abo Elazaim - Financial Planning & Analysis Sector";
+  const reportFooterCredit = isRtl ? "إعداد وتصميم: حسين ابو العزايم - قطاع التخطيط والتحليل المالي" : "Prepared and Designed by: Hussein Abo Elazaim - Financial Planning & Analysis Sector";
 
   if (typeof html2pdf !== "function") {
-    alert(isRtl ? "تعذر تحميل مكوّن PDF." : "PDF component not loaded.");a
+    alert(isRtl ? "تعذر تحميل مكوّن PDF." : "PDF component not loaded.");
     return;
   }
 
@@ -515,7 +509,7 @@ function downloadAssessmentPdf(state, t, formatCurrency, capitalize) {
   document.body.appendChild(staging);
 
   const options = {
-    margin: [10, 10, 20, 10],
+    margin: [6, 6, 12, 6],
     filename: fileName,
     image: { type: "jpeg", quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false, foreignObjectRendering: isRtl, windowWidth: exportWidth, x: 0, y: 0, scrollX: 0, scrollY: 0 },
