@@ -804,6 +804,23 @@ body.rtl select.form-control {
   font-style: italic;
 }
 
+/* Add RTL support for explanation lists */
+body.rtl .explanation-list li {
+  text-align: right;
+  direction: rtl;
+  padding-inline-start: 14px;
+}
+
+body.rtl .explanation-block {
+  text-align: right;
+  direction: rtl;
+}
+
+body.rtl .explanation-heading {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
 /* ---------------------------------------------
    Footer
 --------------------------------------------- */
@@ -876,4 +893,324 @@ body.rtl .results-meta-label {
   font-size: 1rem;
   font-weight: 800;
   color: #2d2d2d;
+}
+.brand-mark {
+    display: none !important;
+}
+
+
+/* ---------------------------------------------
+   Direct PDF export
+--------------------------------------------- */
+
+.btn-pdf {
+  background: var(--olive-700);
+  color: #fff;
+  border: 1.5px solid var(--olive-700);
+  box-shadow: 0 8px 16px rgba(79, 111, 63, 0.22);
+}
+
+.btn-pdf:hover {
+  background: var(--olive-800);
+  border-color: var(--olive-800);
+  box-shadow: 0 12px 20px rgba(63, 90, 50, 0.26);
+}
+
+.btn-pdf:disabled {
+  cursor: wait;
+  opacity: 0.7;
+  transform: none;
+}
+
+.pdf-export-root {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  page-break-inside: avoid;
+}
+
+.pdf-export-root .results-hero,
+.pdf-export-root .explanation-panel,
+.pdf-export-root .explanation-block,
+.pdf-export-root .result-tile,
+.pdf-export-root .results-meta {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.pdf-export-root .screen-actions,
+.pdf-export-root .form-error-banner {
+  display: none !important;
+}
+
+
+.pdf-export-root .results-hero {
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+
+.pdf-export-root .results-grid,
+.pdf-export-root .explanation-columns {
+  min-width: 0;
+}
+
+.pdf-export-root .explanation-columns {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pdf-score-circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 14px solid #e3ead9;
+  border-top-color: #1e8e5a;
+  border-right-color: #1e8e5a;
+  border-bottom-color: #1e8e5a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(0deg);
+  color: #1e8e5a;
+  font-family: var(--font-en);
+}
+
+.pdf-score-value {
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.pdf-score-max {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #6d7568;
+}
+
+.pdf-score-circle + .gauge-caption {
+  margin-top: 10px;
+}
+
+
+/* Arabic PDF text shaping: keep the canvas LTR for correct glyph joining,
+   while preserving right-aligned Arabic content inside the report. */
+
+.pdf-arabic-export {
+  direction: rtl;
+  text-align: right;
+}
+
+.pdf-arabic-export .screen-title,
+.pdf-arabic-export .screen-hint,
+.pdf-arabic-export .results-meta,
+.pdf-arabic-export .result-tile,
+.pdf-arabic-export .explanation-panel,
+.pdf-arabic-export .explanation-block,
+.pdf-arabic-export .explanation-heading,
+.pdf-arabic-export .explanation-list,
+.pdf-arabic-export .limit-range-note {
+  text-align: right;
+  direction: rtl;
+}
+
+.pdf-arabic-export .explanation-heading {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+.pdf-arabic-export .results-hero,
+.pdf-arabic-export .results-grid,
+.pdf-arabic-export .explanation-columns {
+  direction: rtl;
+}
+
+.pdf-arabic-export .results-meta,
+.pdf-arabic-export .result-tile,
+.pdf-arabic-export .explanation-block,
+.pdf-arabic-export .explanation-list li {
+  unicode-bidi: plaintext;
+  direction: rtl;
+}
+
+
+/* Landscape PDF layout */
+
+.pdf-landscape-export {
+  width: 1040px !important;
+  max-width: none !important;
+  padding: 34px 38px !important;
+}
+
+.pdf-landscape-export .results-hero {
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 34px;
+  align-items: center;
+}
+
+.pdf-landscape-export .results-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.pdf-landscape-export .explanation-columns {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.pdf-landscape-export .explanation-block {
+  min-height: 150px;
+}
+
+.pdf-landscape-export .pdf-score-circle {
+  width: 210px;
+  height: 210px;
+}
+
+.pdf-landscape-export .results-meta {
+  margin-bottom: 22px;
+}
+
+.pdf-landscape-export .explanation-panel {
+  padding-top: 22px;
+}
+
+
+/* Professional report identity: header, footer and border */
+
+.pdf-landscape-export {
+  position: relative;
+  border: 1px solid #d8e3d1;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(79, 111, 63, 0.035);
+  padding: 26px 34px 20px !important;
+}
+
+.pdf-report-header {
+  position: relative;
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  overflow: hidden;
+  padding: 16px 22px;
+  margin: 0 0 20px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(242, 201, 76, 0.24), transparent 34%),
+    radial-gradient(circle at 92% 0%, rgba(240, 138, 43, 0.24), transparent 30%),
+    linear-gradient(135deg, #344b2a 0%, #4f6f3f 100%);
+  color: #ffffff;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.pdf-report-header-accent {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  width: 7px;
+  height: 100%;
+  background: linear-gradient(180deg, #f2c94c 0%, #e67a22 100%);
+}
+
+.pdf-report-header-copy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  flex: 1;
+}
+
+.pdf-report-header-kicker {
+  margin-bottom: 5px;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: var(--font-en);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.pdf-report-header-title {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.pdf-report-header-subtitle {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.pdf-report-header-mark {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 74px;
+  height: 42px;
+  flex: 0 0 74px;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font-en);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.pdf-report-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  margin-top: 22px;
+  padding-top: 12px;
+  border-top: 1px solid #dfe8d9;
+  color: #66745f;
+  font-size: 9px;
+  line-height: 1.45;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.pdf-report-footer-line {
+  display: none;
+}
+
+.pdf-report-footer-text {
+  font-weight: 700;
+}
+
+.pdf-report-footer-page {
+  color: #8b9685;
+  font-family: var(--font-en);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: end;
+  white-space: nowrap;
+}
+
+.pdf-arabic-export .pdf-report-header-copy,
+.pdf-arabic-export .pdf-report-footer {
+  text-align: right;
+  direction: rtl;
+}
+
+.pdf-arabic-export .pdf-report-header {
+  direction: rtl;
+}
+
+.pdf-arabic-export .pdf-report-footer {
+  direction: rtl;
+  grid-template-columns: auto minmax(0, 1fr);
 }
