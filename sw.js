@@ -1,10 +1,13 @@
-const CACHE_NAME = 'btech-credit-v5';
+const CACHE_NAME = 'btech-credit-v9';
+
 const ASSETS = [
   './',
   './index.html',
   './style.css',
-  './app.js',
+    './app.js',
   './print.js',
+  './html2pdf.bundle.min.js',
+
   './manifest.json',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap'
 ];
