@@ -1,10 +1,6 @@
 /* =========================================================
    B.TECH Credit Assessment Tool — print.js
    Professional print/PDF export
-   - Cross-list dedup by priority
-   - Semantic de-dup (same meaning family)
-   - Caps explanation item counts
-   - Shows requested/approved/initial credit limits
    ========================================================= */
 
 function printAssessmentWindow(state, t, formatCurrency, capitalize) {
@@ -23,7 +19,6 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
   );
 
   const decisionText = t("decision" + capitalize(r.decision));
-
   const requestedLimitText = r.requestedLimit != null ? formatCurrency(r.requestedLimit) : "—";
 
   let approvedLimitText = "—";
@@ -35,16 +30,9 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
     }
   }
 
-  const initialLimitText =
-    r.decision !== "rejected" && r.initialLimit != null ? formatCurrency(r.initialLimit) : "—";
+  const initialLimitText = r.decision !== "rejected" && r.initialLimit != null ? formatCurrency(r.initialLimit) : "—";
+  const termText = r.term ? (r.term.type === "upTo" ? t("upTo", { n: r.term.n }) : t("between", { a: r.term.a, b: r.term.b })) : "—";
 
-  const termText = r.term
-    ? (r.term.type === "upTo"
-        ? t("upTo", { n: r.term.n })
-        : t("between", { a: r.term.a, b: r.term.b }))
-    : "—";
-
-  // ---------- Explanation cleanup ----------
   function semanticFamily(key) {
     const map = {
       expExcellentPaymentHistory: "paymentHistoryPositive",
@@ -58,7 +46,6 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
   function dedupeByPriorityAndMeaning(expl) {
     const usedExact = new Set();
     const usedFamily = new Set();
-
     const uniq = (arr) => {
       const out = [];
       (arr || []).forEach((k) => {
@@ -71,12 +58,7 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       });
       return out;
     };
-
-    const drivers = uniq(expl.drivers);
-    const weaknesses = uniq(expl.weaknesses);
-    const strengths = uniq(expl.strengths);
-
-    return { strengths, weaknesses, drivers };
+    return { drivers: uniq(expl.drivers), weaknesses: uniq(expl.weaknesses), strengths: uniq(expl.strengths) };
   }
 
   function capExplanationItems(expl, limits = { strengths: 5, weaknesses: 5, drivers: 4 }) {
@@ -98,9 +80,7 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
     return items.map((k) => `<li>${t(k)}</li>`).join("");
   }
 
-  const gradeColors = { A: "#1E8E5A", B: "#2D8C5C", C: "#D98C0F", D: "#C73E3E" };
   const decisionColors = { approved: "#1E8E5A", conditional: "#D98C0F", rejected: "#C73E3E" };
-  const gradeColor = gradeColors[r.grade] || "#2D5C8C";
   const decisionColor = decisionColors[r.decision] || "#2D5C8C";
 
   const printBtnLabel = isRtl ? "🖨️ طباعة / حفظ PDF" : "🖨️ Print / Save as PDF";
@@ -119,35 +99,39 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Tajawal:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    @page { size: A4 landscape; margin: 10mm; }
-    html, body { margin: 0; padding: 0; }
+    @page { 
+      size: A4 landscape; 
+      margin: 10mm 10mm 25mm 10mm;
+    }
+    @page :footer {
+      content: '';
+    }
+    
+    html, body { 
+      margin: 0; 
+      padding: 0; 
+      height: 100%;
+      width: 100%;
+    }
+    
     body {
       font-family: ${fontFamily};
       background: #fff;
       color: #1B2430;
-      padding: 20px 26px 16px;
       font-size: 12px;
       direction: ${dir};
-      border: 1px solid #D8E3D1;
-      border-radius: 16px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      padding: 0;
     }
 
-    .container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
+    .main {
+      padding: 20px 26px 0;
+      min-height: calc(100vh - 50px);
     }
 
     .header {
       position: relative;
       overflow: hidden;
-      background:
-        radial-gradient(circle at 8% 10%, rgba(242, 201, 76, 0.24), transparent 34%),
-        radial-gradient(circle at 92% 0%, rgba(240, 138, 43, 0.24), transparent 30%),
-        linear-gradient(135deg, #344B2A 0%, #4F6F3F 100%);
+      background: radial-gradient(circle at 8% 10%, rgba(242, 201, 76, 0.24), transparent 34%), radial-gradient(circle at 92% 0%, rgba(240, 138, 43, 0.24), transparent 30%), linear-gradient(135deg, #344B2A 0%, #4F6F3F 100%);
       color: #fff;
       padding: 15px 20px;
       border: 1px solid rgba(255, 255, 255, 0.25);
@@ -157,11 +141,11 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       justify-content: space-between;
       align-items: center;
       gap: 16px;
+      page-break-after: avoid;
       page-break-inside: avoid;
-      break-inside: avoid;
       direction: ${dir};
-      flex-shrink: 0;
     }
+    
     .header::before {
       content: "";
       position: absolute;
@@ -171,14 +155,10 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       height: 100%;
       background: linear-gradient(180deg, #F2C94C 0%, #E67A22 100%);
     }
+    
     .header-title { font-size: 17px; font-weight: 800; line-height: 1.35; position: relative; z-index: 1; }
     .header-kicker { font-family: Inter, sans-serif; font-size: 8px; font-weight: 800; letter-spacing: .12em; opacity: .72; margin-bottom: 4px; position: relative; z-index: 1; }
-    .header-mark { display: flex; align-items: center; justify-content: center; width: 70px; height: 38px; flex: 0 0 70px; border: 1px solid rgba(255,255,255,.48); border-radius: 9px; font-family: Inter, sans-serif; font-size: 13px; font-weight: 800; letter-spacing: .05em; position: relative; z-index: 1; }
-
-    .content {
-      flex: 1;
-      margin-bottom: 16px;
-    }
+    .header-mark { display: flex; align-items: center; justify-content: center; width: 70px; height: 38px; border: 1px solid rgba(255,255,255,.48); border-radius: 9px; font-family: Inter, sans-serif; font-size: 13px; font-weight: 800; letter-spacing: .05em; position: relative; z-index: 1; }
 
     .meta-row {
       display: flex;
@@ -191,13 +171,9 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       margin-bottom: 16px;
       direction: ${dir};
       page-break-inside: avoid;
-      break-inside: avoid;
     }
     .meta-item { display: flex; flex-direction: column; gap: 2px; }
-    .meta-label {
-      font-size: 10px; font-weight: 700; color: #6B7785;
-      text-transform: uppercase; letter-spacing: 0.04em;
-    }
+    .meta-label { font-size: 10px; font-weight: 700; color: #6B7785; text-transform: uppercase; letter-spacing: 0.04em; }
     .meta-value { font-size: 13px; font-weight: 700; color: #0F2A4A; }
 
     .scores-grid {
@@ -206,7 +182,6 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       gap: 10px;
       margin-bottom: 14px;
       page-break-inside: avoid;
-      break-inside: avoid;
     }
 
     .score-tile {
@@ -217,20 +192,9 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       min-height: 84px;
       direction: ${dir};
       page-break-inside: avoid;
-      break-inside: avoid;
     }
-    .score-tile-label {
-      font-size: 9px; font-weight: 700; color: #6B7785;
-      text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.04em;
-      line-height: 1.35;
-    }
-    .score-tile-value {
-      font-size: 14px;
-      font-weight: 800;
-      color: #0F2A4A;
-      line-height: 1.4;
-      word-break: break-word;
-    }
+    .score-tile-label { font-size: 9px; font-weight: 700; color: #6B7785; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.04em; line-height: 1.35; }
+    .score-tile-value { font-size: 14px; font-weight: 800; color: #0F2A4A; line-height: 1.4; word-break: break-word; }
 
     .badge {
       display: inline-block;
@@ -253,7 +217,6 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       direction: ${dir};
       text-align: ${dir === "rtl" ? "right" : "left"};
       page-break-inside: avoid;
-      break-inside: avoid;
     }
 
     .explanation-grid {
@@ -262,8 +225,8 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       gap: 10px;
       margin-bottom: 20px;
       page-break-inside: avoid;
-      break-inside: avoid;
     }
+    
     .exp-block {
       background: #F7F9FB;
       border: 1px solid #E3E8EF;
@@ -271,8 +234,8 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       padding: 12px;
       direction: ${dir};
       page-break-inside: avoid;
-      break-inside: avoid;
     }
+    
     .exp-heading {
       font-size: 10px;
       font-weight: 700;
@@ -293,7 +256,7 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
     .exp-bad  { color: #C73E3E; } .exp-bad::before  { background: #C73E3E; }
     .exp-warn { color: #D98C0F; } .exp-warn::before { background: #D98C0F; }
 
-    ul { list-style: none; padding: 0; }
+    ul { list-style: none; }
     ul li {
       font-size: 10px;
       color: #1B2430;
@@ -315,8 +278,7 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       background: #6B7785;
     }
 
-    .footer {
-      flex-shrink: 0;
+    .footer-section {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
@@ -325,18 +287,18 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       color: #6B7785;
       text-align: ${dir === "rtl" ? "right" : "left"};
       border-top: 1px solid #DFE8D9;
-      padding-top: 10px;
-      margin-top: 14px;
+      padding: 10px 0;
       line-height: 1.6;
-      page-break-inside: avoid;
-      break-inside: avoid;
       direction: ${dir};
       ${dir === "rtl" ? "flex-direction: row-reverse;" : ""}
+      margin-top: 20px;
+      page-break-inside: avoid;
     }
+    
     .footer-credit { font-weight: 700; color: #66745F; white-space: nowrap; }
     .footer-disclaimer { max-width: 54%; }
 
-    .print-bar { text-align: center; padding: 20px 0 8px; flex-shrink: 0; }
+    .print-bar { text-align: center; padding: 20px 0 8px; }
     .print-btn {
       background: #0F2A4A;
       color: #fff;
@@ -347,10 +309,7 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       font-weight: 700;
       cursor: pointer;
       font-family: ${fontFamily};
-      transition: background 0.2s;
     }
-    .print-btn:hover { background: #173A60; }
-    .print-btn:active { transform: scale(0.97); }
 
     @media (max-width: 900px) {
       .scores-grid { grid-template-columns: repeat(2, 1fr); }
@@ -360,11 +319,13 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
     @media print {
       .print-bar { display: none !important; }
       body { border: none; }
+      .main { padding-bottom: 30px; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
+
+  <div class="main">
     <div class="header">
       <div>
         <div class="header-kicker">B.TECH | CREDIT ASSESSMENT</div>
@@ -379,67 +340,65 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       </div>
     </div>
 
-    <div class="content">
-      <div class="meta-row">
-        <div class="meta-item">
-          <span class="meta-label">${t("resultCustomer")}</span>
-          <span class="meta-value">${customerName}</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-label">${t("creditScore")}</span>
-          <span class="meta-value">${r.score} / 100</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-label">${t("riskGrade")}</span>
-          <span class="meta-value">${t("grade" + r.grade)}</span>
-        </div>
+    <div class="meta-row">
+      <div class="meta-item">
+        <span class="meta-label">${t("resultCustomer")}</span>
+        <span class="meta-value">${customerName}</span>
       </div>
-
-      <div class="scores-grid">
-        <div class="score-tile">
-          <div class="score-tile-label">${t("finalDecision")}</div>
-          <span class="badge" style="background:${decisionColor}22;color:${decisionColor}">${decisionText}</span>
-        </div>
-        <div class="score-tile">
-          <div class="score-tile-label">${t("requestedLimitDisplay")}</div>
-          <div class="score-tile-value">${requestedLimitText}</div>
-        </div>
-        <div class="score-tile">
-          <div class="score-tile-label">${t("approvedLimitDisplay")}</div>
-          <div class="score-tile-value">${approvedLimitText}</div>
-        </div>
-        <div class="score-tile">
-          <div class="score-tile-label">${t("initialLimitDisplay")}</div>
-          <div class="score-tile-value">${initialLimitText}</div>
-        </div>
+      <div class="meta-item">
+        <span class="meta-label">${t("creditScore")}</span>
+        <span class="meta-value">${r.score} / 100</span>
       </div>
-
-      ${r.decision !== "rejected" ? `<div class="rule-note">${t("initialLimitRuleNote")}</div>` : ""}
-
-      <div class="scores-grid" style="margin-top:0">
-        <div class="score-tile" style="grid-column: span 4;">
-          <div class="score-tile-label">${t("recommendedTerm")}</div>
-          <div class="score-tile-value">${termText}</div>
-        </div>
-      </div>
-
-      <div class="explanation-grid">
-        <div class="exp-block">
-          <div class="exp-heading exp-good">${t("strengths")}</div>
-          <ul>${renderList(cleanedExplanation.strengths)}</ul>
-        </div>
-        <div class="exp-block">
-          <div class="exp-heading exp-bad">${t("weaknesses")}</div>
-          <ul>${renderList(cleanedExplanation.weaknesses)}</ul>
-        </div>
-        <div class="exp-block">
-          <div class="exp-heading exp-warn">${t("riskDrivers")}</div>
-          <ul>${renderList(cleanedExplanation.drivers)}</ul>
-        </div>
+      <div class="meta-item">
+        <span class="meta-label">${t("riskGrade")}</span>
+        <span class="meta-value">${t("grade" + r.grade)}</span>
       </div>
     </div>
 
-    <div class="footer">
+    <div class="scores-grid">
+      <div class="score-tile">
+        <div class="score-tile-label">${t("finalDecision")}</div>
+        <span class="badge" style="background:${decisionColor}22;color:${decisionColor}">${decisionText}</span>
+      </div>
+      <div class="score-tile">
+        <div class="score-tile-label">${t("requestedLimitDisplay")}</div>
+        <div class="score-tile-value">${requestedLimitText}</div>
+      </div>
+      <div class="score-tile">
+        <div class="score-tile-label">${t("approvedLimitDisplay")}</div>
+        <div class="score-tile-value">${approvedLimitText}</div>
+      </div>
+      <div class="score-tile">
+        <div class="score-tile-label">${t("initialLimitDisplay")}</div>
+        <div class="score-tile-value">${initialLimitText}</div>
+      </div>
+    </div>
+
+    ${r.decision !== "rejected" ? `<div class="rule-note">${t("initialLimitRuleNote")}</div>` : ""}
+
+    <div class="scores-grid" style="margin-top:0">
+      <div class="score-tile" style="grid-column: span 4;">
+        <div class="score-tile-label">${t("recommendedTerm")}</div>
+        <div class="score-tile-value">${termText}</div>
+      </div>
+    </div>
+
+    <div class="explanation-grid">
+      <div class="exp-block">
+        <div class="exp-heading exp-good">${t("strengths")}</div>
+        <ul>${renderList(cleanedExplanation.strengths)}</ul>
+      </div>
+      <div class="exp-block">
+        <div class="exp-heading exp-bad">${t("weaknesses")}</div>
+        <ul>${renderList(cleanedExplanation.weaknesses)}</ul>
+      </div>
+      <div class="exp-block">
+        <div class="exp-heading exp-warn">${t("riskDrivers")}</div>
+        <ul>${renderList(cleanedExplanation.drivers)}</ul>
+      </div>
+    </div>
+
+    <div class="footer-section">
       <span class="footer-credit">${printFooterCredit}</span>
       <span class="footer-disclaimer">${t("footerNote")}</span>
     </div>
@@ -461,22 +420,13 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
 
     if (!newTab) {
       URL.revokeObjectURL(blobUrl);
-      alert(
-        isRtl
-          ? "تم حظر النافذة المنبثقة. يرجى السماح بالنوافذ المنبثقة لهذا الموقع ثم المحاولة مرة أخرى."
-          : "Popup was blocked. Please allow popups for this site and try again."
-      );
+      alert(isRtl ? "تم حظر النافذة المنبثقة." : "Popup was blocked.");
       return;
     }
 
     setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
   } catch (err) {
     console.error("Print failed:", err);
-    alert(
-      isRtl
-        ? "حدث خطأ أثناء تجهيز الطباعة. يرجى المحاولة مرة أخرى."
-        : "Something went wrong while preparing the print. Please try again."
-    );
   }
 }
 
@@ -488,34 +438,19 @@ function downloadAssessmentPdf(state, t, formatCurrency, capitalize) {
   const customerNameKey = state.customerType === "sme" ? "companyName" : "customerName";
   const customerName = state.values[customerNameKey] || "customer";
   const datePart = new Date().toISOString().slice(0, 10);
-  const safeCustomerName = String(customerName)
-    .trim()
-    .replace(/[^\p{L}\p{N}_-]+/gu, "-")
-    .replace(/^-+|-+$/g, "") || "customer";
+  const safeCustomerName = String(customerName).trim().replace(/[^\p{L}\p{N}_-]+/gu, "-").replace(/^-+|-+$/g, "") || "customer";
   const fileName = `credit-assessment-${safeCustomerName}-${datePart}.pdf`;
-  const reportHeaderTitle = isRtl
-    ? "نظام تقييم منح ائتمان للعملاء الجدد - شركة بي تك للتجارة والتوزيع"
-    : "New Customer Credit Grant Assessment System - B.TECH for Trading & Distribution";
-  const reportFooterCredit = isRtl
-    ? "إعداد وتصميم: حسين ابو العزايم - قطاع التحليل والتخطيط المالي"
-    : "Prepared and Designed by: Hussein Abu El-Azayem - Financial Analysis & Planning Sector";
+  const reportHeaderTitle = isRtl ? "نظام تقييم منح ائتمان للعملاء الجدد - شركة بي تك للتجارة والتوزيع" : "New Customer Credit Grant Assessment System - B.TECH for Trading & Distribution";
+  const reportFooterCredit = isRtl ? "إعداد وتصميم: حسين ابو العزايم - قطاع التحليل والتخطيط المالي" : "Prepared and Designed by: Hussein Abu El-Azayem - Financial Analysis & Planning Sector";
 
   if (typeof html2pdf !== "function") {
-    alert(
-      isRtl
-        ? "تعذر تحميل مكوّن PDF. يرجى تحديث الصفحة ثم المحاولة مرة أخرى."
-        : "The PDF component could not be loaded. Please refresh the page and try again."
-    );
+    alert(isRtl ? "تعذر تحميل مكوّن PDF." : "PDF component not loaded.");
     return;
   }
 
   const source = document.querySelector("#screen3 .results-card");
   if (!source) {
-    alert(
-      isRtl
-        ? "لا توجد نتائج جاهزة للتصدير. يرجى إجراء التقييم أولًا."
-        : "No assessment results are ready to export. Please complete the assessment first."
-    );
+    alert(isRtl ? "لا توجد نتائج جاهزة للتصدير." : "No results ready.");
     return;
   }
 
@@ -531,16 +466,7 @@ function downloadAssessmentPdf(state, t, formatCurrency, capitalize) {
   staging.className = "pdf-staging";
   staging.dir = isRtl ? "rtl" : "ltr";
   staging.lang = state.lang;
-  staging.style.cssText = [
-    "position: fixed",
-    "left: 0",
-    "top: 0",
-    `width: ${exportWidth}px`,
-    "background: #ffffff",
-    "z-index: -1",
-    "padding: 0",
-    "margin: 0",
-  ].join(";");
+  staging.style.cssText = ["position: fixed", "left: 0", "top: 0", `width: ${exportWidth}px`, "background: #ffffff", "z-index: -1", "padding: 0", "margin: 0"].join(";");
 
   const report = source.cloneNode(true);
   report.dir = isRtl ? "rtl" : "ltr";
@@ -556,25 +482,14 @@ function downloadAssessmentPdf(state, t, formatCurrency, capitalize) {
   const reportHeader = document.createElement("header");
   reportHeader.className = "pdf-report-header";
   reportHeader.dir = isRtl ? "rtl" : "ltr";
-  reportHeader.innerHTML = `
-    <div class="pdf-report-header-accent"></div>
-    <div class="pdf-report-header-copy">
-      <div class="pdf-report-header-kicker">B.TECH | CREDIT ASSESSMENT</div>
-      <div class="pdf-report-header-title"></div>
-    </div>
-    <div class="pdf-report-header-mark">B.TECH</div>
-  `;
+  reportHeader.innerHTML = `<div class="pdf-report-header-accent"></div><div class="pdf-report-header-copy"><div class="pdf-report-header-kicker">B.TECH | CREDIT ASSESSMENT</div><div class="pdf-report-header-title"></div></div><div class="pdf-report-header-mark">B.TECH</div>`;
   reportHeader.querySelector(".pdf-report-header-title").textContent = reportHeaderTitle;
   report.prepend(reportHeader);
 
   const reportFooter = document.createElement("footer");
   reportFooter.className = "pdf-report-footer";
   reportFooter.dir = isRtl ? "rtl" : "ltr";
-  reportFooter.innerHTML = `
-    <span class="pdf-report-footer-line"></span>
-    <span class="pdf-report-footer-text"></span>
-    <span class="pdf-report-footer-page">B.TECH • CREDIT ASSESSMENT</span>
-  `;
+  reportFooter.innerHTML = `<span class="pdf-report-footer-text"></span><span class="pdf-report-footer-page">B.TECH • CREDIT ASSESSMENT</span>`;
   reportFooter.querySelector(".pdf-report-footer-text").textContent = reportFooterCredit;
   report.appendChild(reportFooter);
 
@@ -586,15 +501,12 @@ function downloadAssessmentPdf(state, t, formatCurrency, capitalize) {
     const gaugeFallback = document.createElement("div");
     gaugeFallback.className = "pdf-score-circle";
     gaugeFallback.setAttribute("aria-label", `${state.result?.score ?? 0} / 100`);
-
     const scoreValue = document.createElement("span");
     scoreValue.className = "pdf-score-value";
     scoreValue.textContent = String(state.result?.score ?? 0);
-
     const scoreMax = document.createElement("span");
     scoreMax.className = "pdf-score-max";
     scoreMax.textContent = "/ 100";
-
     gaugeFallback.append(scoreValue, scoreMax);
     gaugeSvg.replaceWith(gaugeFallback);
   }
@@ -603,37 +515,18 @@ function downloadAssessmentPdf(state, t, formatCurrency, capitalize) {
   document.body.appendChild(staging);
 
   const options = {
-    margin: [10, 10, 10, 10],
+    margin: [10, 10, 20, 10],
     filename: fileName,
     image: { type: "jpeg", quality: 0.98 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      logging: false,
-      foreignObjectRendering: isRtl,
-      windowWidth: exportWidth,
-      x: 0,
-      y: 0,
-      scrollX: 0,
-      scrollY: 0,
-    },
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false, foreignObjectRendering: isRtl, windowWidth: exportWidth, x: 0, y: 0, scrollX: 0, scrollY: 0 },
     jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
-    pagebreak: {
-      mode: ["css", "legacy"],
-      avoid: [".results-meta", ".result-tile", ".explanation-block"],
-    },
+    pagebreak: { mode: ["css", "legacy"], avoid: [".results-meta", ".result-tile", ".explanation-block"] },
   };
 
   function removeTrailingBlankFragments(pdf) {
     while (pdf.getNumberOfPages() > 1) {
       const page = pdf.internal?.pages?.[pdf.getNumberOfPages()] || [];
-      const imageHeights = page
-        .map((line) => {
-          const match = typeof line === "string" && line.match(/0 0 ([\d.]+) [\d.]+ [\d.]+ [\d.]+ cm/);
-          return match ? Number(match[1]) : 0;
-        })
-        .filter((height) => height > 0);
+      const imageHeights = page.map((line) => { const match = typeof line === "string" && line.match(/0 0 ([\d.]+) [\d.]+ [\d.]+ [\d.]+ cm/); return match ? Number(match[1]) : 0; }).filter((height) => height > 0);
       const maxImageHeight = imageHeights.length ? Math.max(...imageHeights) : 0;
       if (maxImageHeight > 1) break;
       pdf.deletePage(pdf.getNumberOfPages());
@@ -662,11 +555,6 @@ function downloadAssessmentPdf(state, t, formatCurrency, capitalize) {
         downloadButton.disabled = false;
         downloadButton.textContent = originalLabel;
       }
-      alert(
-        isRtl
-          ? "حدث خطأ أثناء إنشاء ملف PDF. يرجى المحاولة مرة أخرى."
-          : "Something went wrong while creating the PDF file. Please try again."
-      );
     });
 }
 
