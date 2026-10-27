@@ -141,6 +141,7 @@ const translations = {
     expModerateBranchNetwork: "Moderate branch network",
     expLimitedBranchNetwork: "Limited branch network",
     expLimitReducedForCreditHistory: "Calculated limit was reduced due to a weaker credit history",
+    expLimitReducedForBouncedCheques: "Final limit was reduced due to bounced cheques on record",
     expStrongCurrentRatio: "Strong current ratio (healthy short-term liquidity)",
     expWeakCurrentRatio: "Weak current ratio (liquidity pressure)",
     expStrongQuickRatio: "Strong quick ratio",
@@ -306,6 +307,7 @@ const translations = {
     expModerateBranchNetwork: "شبكة فروع متوسطة",
     expLimitedBranchNetwork: "شبكة فروع محدودة",
     expLimitReducedForCreditHistory: "تم تخفيض الحد المحسوب بسبب ضعف السجل الائتماني",
+    expLimitReducedForBouncedCheques: "تم تخفيض الحد النهائي بسبب وجود شيكات مرتجعة",
     expStrongCurrentRatio: "نسبة تداول قوية (سيولة قصيرة الأجل جيدة)",
     expWeakCurrentRatio: "نسبة تداول ضعيفة (ضغط على السيولة)",
     expStrongQuickRatio: "نسبة سيولة سريعة قوية",
@@ -522,13 +524,29 @@ function branchScoreFactor(branchesRaw) {
   return 0;
 }
 
+// معامل تخفيض الحد بسبب الشيكات المرتجعة (شيكين فأكثر)
+// iScore < 600            => رفض (0)
+// iScore 600 - 699        => 50% مهما كان عدد الشيكات
+// iScore >= 700           => 2 شيك: 90% | 3 شيك: 80% | 4 فأكثر: 50%
+function bouncedChequesFactor(bouncedRaw, iScoreRaw) {
+  const bounced = num(bouncedRaw);
+  const iScore = num(iScoreRaw);
+  if (bounced < 2) return 1;
+  if (iScore < 600) return 0;
+  if (iScore < 700) return 0.5;
+  if (bounced === 2) return 0.9;
+  if (bounced === 3) return 0.8;
+  return 0.5;
+}
+
 function creditQualityMultiplier(v) {
   const bounced = num(v.bouncedCheques);
   const hasLegalHistory = v.legalHistory === "yes";
   const iScore = num(v.iScoreRating);
+  const bouncedFactor = bouncedChequesFactor(bounced, iScore);
 
-  if (hasLegalHistory || bounced >= 2 || iScore <= 520) {
-    return { multiplier: 0, tier: "bad" };
+  if (hasLegalHistory || iScore <= 520 || bouncedFactor === 0) {
+    return { multiplier: 0, tier: "bad", bouncedFactor: 0 };
   }
 
   const iScoreRatio = iScoreAcceptanceRatio(iScore);
@@ -536,12 +554,12 @@ function creditQualityMultiplier(v) {
   if (iScoreRatio < 0.85) weakSignals++;
   if (["sometimes", "frequently"].includes(v.paymentBehavior)) weakSignals++;
   if (["30to90", "over90"].includes(v.maxDelay)) weakSignals++;
-  if (bounced === 1) weakSignals++;
+  if (bounced === 1 && iScore < 650) weakSignals++;
 
-  if (weakSignals === 0) return { multiplier: 1.0, tier: "clean" };
-  if (weakSignals === 1) return { multiplier: 0.9, tier: "good" };
-  if (weakSignals === 2) return { multiplier: 0.75, tier: "average" };
-  return { multiplier: 0.5, tier: "weak" };
+  if (weakSignals === 0) return { multiplier: 1.0, tier: "clean", bouncedFactor };
+  if (weakSignals === 1) return { multiplier: 0.9, tier: "good", bouncedFactor };
+  if (weakSignals === 2) return { multiplier: 0.75, tier: "average", bouncedFactor };
+  return { multiplier: 0.5, tier: "weak", bouncedFactor };
 }
 
 function scoreModelB(v) {
@@ -579,7 +597,7 @@ function limitModelB(v) {
   const paymentDays = num(v.requestedPaymentTerm) || 30;
   const salesLimit = salesBasedLimit(annualSalesBtech, paymentDays);
 
-  const { multiplier, tier } = creditQualityMultiplier(v);
+  const { multiplier, tier, bouncedFactor } = creditQualityMultiplier(v);
 
   if (multiplier === 0) {
     return {
@@ -587,6 +605,7 @@ function limitModelB(v) {
       salesBasedLimit: salesLimit,
       creditQualityMultiplier: 0,
       creditQualityTier: tier,
+      bouncedFactor: 0,
       guaranteeDiscount: 0,
     };
   }
@@ -594,11 +613,12 @@ function limitModelB(v) {
   const limitAfterQuality = salesLimit * multiplier;
   const hasGuarantee = v.guaranteeAvailable === "yes" && num(v.guaranteeValue) > 0;
   const guaranteeDiscount = hasGuarantee ? 0 : 0.10;
-  const finalLimit = limitAfterQuality * (1 - guaranteeDiscount);
+  const finalLimit = limitAfterQuality * (1 - guaranteeDiscount) * bouncedFactor;
 
   return {
     finalLimit,
     salesBasedLimit: salesLimit,
+    bouncedFactor,
     limitAfterQuality,
     creditQualityMultiplier: multiplier,
     creditQualityTier: tier,
@@ -748,7 +768,8 @@ function buildExplanationSole(v, scoreData, limitData) {
   if (bounced === 0) strengths.push("expNoBounced");
   else if (bounced >= 2) {
     weaknesses.push("expMultipleBounced");
-    drivers.push("expMultipleBounced");
+    // الرفض فقط إذا كان iScore أقل من 600؛ غير ذلك يظهر سبب تخفيض الحد
+    if (bouncedChequesFactor(bounced, v.iScoreRating) === 0) drivers.push("expMultipleBounced");
   }
 
   if (v.legalHistory === "no") strengths.push("expNoLegalHistory");
@@ -774,6 +795,10 @@ function buildExplanationSole(v, scoreData, limitData) {
 
   if (limitData && limitData.creditQualityMultiplier < 1) {
     drivers.push("expLimitReducedForCreditHistory");
+  }
+
+  if (limitData && limitData.bouncedFactor > 0 && limitData.bouncedFactor < 1) {
+    drivers.push("expLimitReducedForBouncedCheques");
   }
 
   return { strengths, weaknesses, drivers };
