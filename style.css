@@ -145,6 +145,11 @@ ul {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+  direction: ltr;
+}
+
+body.rtl .app-header-inner {
+  direction: rtl;
 }
 
 .brand {
@@ -863,6 +868,7 @@ select:focus-visible {
 .results-meta {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 32px;
   background: linear-gradient(180deg, #fffefb 0%, #fff9ea 100%);
   border: 1px solid #f1e0b5;
@@ -870,12 +876,19 @@ select:focus-visible {
   padding: 14px 20px;
   margin-bottom: 28px;
   flex-wrap: wrap;
+  direction: ltr;
+}
+
+body.rtl .results-meta {
+  direction: rtl;
 }
 
 .results-meta-item {
   display: flex;
   flex-direction: column;
   gap: 3px;
+  text-align: start;
+  direction: inherit;
 }
 
 .results-meta-label {
@@ -894,6 +907,114 @@ body.rtl .results-meta-label {
   font-weight: 800;
   color: #2d2d2d;
 }
+
+/* ---------------------------------------------
+   Decision basis summary and approvals
+--------------------------------------------- */
+
+.decision-inputs-panel,
+.signatures-panel {
+  border-top: 1px solid #e6ecdc;
+  padding-top: 24px;
+  margin-top: 4px;
+}
+
+.decision-inputs-hint {
+  margin: -10px 0 16px;
+  color: var(--muted-600);
+  font-size: 0.86rem;
+}
+
+.decision-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.decision-input-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: 12px 14px;
+  background: #fbfdf9;
+  border: 1px solid #e5ebdc;
+  border-radius: 11px;
+}
+
+.decision-input-label {
+  color: #697363;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.decision-input-value {
+  color: var(--ink-900);
+  font-size: 0.92rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.decision-inputs-empty {
+  margin: 0;
+  color: #788171;
+  font-style: italic;
+}
+
+.signatures-panel {
+  margin-top: 28px;
+}
+
+.signatures-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.signature-box {
+  min-height: 118px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #dfe8d9;
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdf9 100%);
+}
+
+.signature-role {
+  color: var(--olive-800);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.signature-line {
+  display: block;
+  height: 28px;
+  border-bottom: 1px solid #6b7567;
+}
+
+.signature-meta {
+  color: #788171;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+body.rtl .decision-inputs-panel,
+body.rtl .signatures-panel,
+body.rtl .decision-input-item,
+body.rtl .signature-box {
+  text-align: right;
+  direction: rtl;
+}
+
+@media (max-width: 720px) {
+  .decision-inputs-grid,
+  .signatures-grid { grid-template-columns: 1fr; }
+}
+
 .brand-mark {
     display: none !important;
 }
@@ -934,9 +1055,13 @@ body.rtl .results-meta-label {
 
 .pdf-export-root .results-hero,
 .pdf-export-root .explanation-panel,
+.pdf-export-root .decision-inputs-panel,
+.pdf-export-root .signatures-panel,
 .pdf-export-root .explanation-block,
 .pdf-export-root .result-tile,
-.pdf-export-root .results-meta {
+.pdf-export-root .results-meta,
+.pdf-export-root .decision-input-item,
+.pdf-export-root .signature-box {
   break-inside: avoid;
   page-break-inside: avoid;
 }
@@ -1057,6 +1182,12 @@ body.rtl .results-meta-label {
 .pdf-landscape-export .explanation-columns {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+}
+
+.pdf-landscape-export .decision-inputs-grid,
+.pdf-landscape-export .signatures-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .pdf-landscape-export .explanation-block {
