@@ -107,6 +107,12 @@
             </div>
           </div>
 
+          <section class="decision-inputs-panel" aria-labelledby="decisionInputsTitle">
+            <h3 id="decisionInputsTitle" class="explanation-title">Decision Basis — Submitted Data</h3>
+            <p id="decisionInputsHint" class="decision-inputs-hint">Key information entered and used by the assessment model.</p>
+            <div id="decisionInputsGrid" class="decision-inputs-grid"></div>
+          </section>
+
           <div class="results-hero">
             <div class="gauge-wrap">
               <svg id="scoreGaugeSvg" viewBox="0 0 200 200" class="gauge-svg"></svg>
@@ -142,6 +148,27 @@
               <div id="riskDriversList" class="explanation-block"></div>
             </div>
           </div>
+
+          <section class="signatures-panel" aria-labelledby="signaturesTitle">
+            <h3 id="signaturesTitle" class="explanation-title">Approvals &amp; Signatures</h3>
+            <div class="signatures-grid">
+              <div class="signature-box">
+                <span id="signatureAccountantLabel" class="signature-role">Department Accountant</span>
+                <span class="signature-line"></span>
+                <span id="signatureAccountantMeta" class="signature-meta">Name / Signature / Date</span>
+              </div>
+              <div class="signature-box">
+                <span id="signatureManagerLabel" class="signature-role">Department Manager</span>
+                <span class="signature-line"></span>
+                <span id="signatureManagerMeta" class="signature-meta">Name / Signature / Date</span>
+              </div>
+              <div class="signature-box">
+                <span id="signatureFinalLabel" class="signature-role">Final Approval</span>
+                <span class="signature-line"></span>
+                <span id="signatureFinalMeta" class="signature-meta">Name / Signature / Date</span>
+              </div>
+            </div>
+          </section>
 
           <div class="screen-actions">
             <button id="btnBackTo2" type="button" class="btn btn-secondary">Back</button>
