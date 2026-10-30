@@ -11,12 +11,12 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
   const dir = isRtl ? "rtl" : "ltr";
   const fontFamily = isRtl ? "Tajawal, sans-serif" : "Inter, sans-serif";
 
-  const customerNameKey = state.customerType === "sme" ? "companyName" : "customerName";
-  const customerName = state.values[customerNameKey] || "—";
   const assessmentDate = new Date().toLocaleDateString(
     isRtl ? "ar-EG" : "en-GB",
     { year: "numeric", month: "long", day: "numeric" }
   );
+  const customerNameKey = state.customerType === "sme" ? "companyName" : "customerName";
+  const customerName = state.values[customerNameKey] || "—";
 
   const decisionText = t("decision" + capitalize(r.decision));
   const requestedLimitText = r.requestedLimit != null ? formatCurrency(r.requestedLimit) : "—";
@@ -91,6 +91,42 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
     ? "إعداد وتصميم: حسين ابو العزايم - قطاع التخطيط والتحليل المالي"
     : "Prepared and Designed by: Hussein Abo Elazaim - Financial Planning & Analysis Sector";
 
+  const summaryCurrencyFields = new Set([
+    "registeredCapital", "annualSalesBtech", "annualPlannedSales", "requestedCreditLimit",
+    "guaranteeValue", "cash", "accountsReceivable", "inventory", "shortTermDebt",
+    "totalDebt", "totalEquity", "revenue", "netIncome", "taxExpense",
+    "interestExpense", "depreciationAmortization",
+  ]);
+  const summaryHiddenFields = new Set([
+    "customerName", "companyName", "businessActivity", "industry", "numberOfBranches", "registeredCapital",
+    "requestedCreditLimit", "legalHistory",
+  ]);
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+  }
+
+  function summaryValue(field) {
+    const raw = state.values[field.key];
+    if (raw === undefined || raw === null || raw === "") return "";
+    if (field.type === "select") {
+      const option = (OPTION_SETS[field.optionsKey] || []).find((item) => item.value === String(raw));
+      return option?.labelKey ? t(option.labelKey) : (option?.raw != null ? `${option.raw} ${t("days")}` : String(raw));
+    }
+    if (summaryCurrencyFields.has(field.key)) return formatCurrency(Number(String(raw).replace(/,/g, "")) || 0);
+    if (field.key === "iScoreRating") return `${parseFloat(String(raw).replace(/,/g, ""))} / 850 — ${t(iScoreBandKey(raw))}`;
+    return String(raw);
+  }
+
+  const summaryFields = (MODEL_FIELDS[state.customerType] || []).flatMap((section) => section.fields);
+  const summaryRows = summaryFields
+    .filter((field) => !summaryHiddenFields.has(field.key))
+    .map((field) => ({ label: t(field.labelKey), value: summaryValue(field) }))
+    .filter((item) => item.value !== "")
+    .map((item) => `<div class="input-item"><span class="input-label">${escapeHtml(item.label)}</span><span class="input-value">${escapeHtml(item.value)}</span></div>`)
+    .join("");
+  const summaryMarkup = summaryRows || `<div class="input-empty">${escapeHtml(t("noDataEntered"))}</div>`;
+
   const html = `<!DOCTYPE html>
 <html lang="${state.lang}" dir="${dir}">
 <head>
@@ -159,6 +195,7 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       display: flex;
       gap: 14px;
       flex-wrap: wrap;
+      justify-content: flex-start;
       background: #F7F9FB;
       border: 1px solid #E3E8EF;
       border-radius: 6px;
@@ -167,9 +204,18 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       direction: ${dir};
       page-break-inside: avoid;
     }
-    .meta-item { display: flex; flex-direction: column; gap: 1px; }
+    .meta-item { display: flex; flex-direction: column; gap: 1px; text-align: start; direction: inherit; }
     .meta-label { font-size: 8px; font-weight: 700; color: #6B7785; text-transform: uppercase; letter-spacing: 0.03em; }
     .meta-value { font-size: 11px; font-weight: 700; color: #0F2A4A; }
+
+    .input-summary { margin: 0 0 8px; padding: 7px 9px; border: 1px solid #E3E8EF; border-radius: 6px; background: #FBFDF9; direction: ${dir}; page-break-inside: avoid; }
+    .input-summary-title { color: #344B2A; font-size: 9px; font-weight: 800; margin-bottom: 2px; }
+    .input-summary-hint { color: #6B7785; font-size: 8px; margin-bottom: 6px; }
+    .input-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .input-item { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 5px 7px; border: 1px solid #E5EBDD; border-radius: 5px; background: #FFFFFF; page-break-inside: avoid; }
+    .input-label { color: #6B7785; font-size: 7px; font-weight: 700; line-height: 1.2; }
+    .input-value { color: #1B2430; font-size: 9px; font-weight: 700; overflow-wrap: anywhere; }
+    .input-empty { color: #6B7785; font-size: 8px; font-style: italic; }
 
     .scores-grid {
       display: grid;
@@ -273,6 +319,14 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
       background: #6B7785;
     }
 
+    .signatures { margin-top: 8px; page-break-inside: avoid; }
+    .signatures-title { color: #344B2A; font-size: 9px; font-weight: 800; margin-bottom: 6px; }
+    .signature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .signature-box { min-height: 52px; padding: 7px 8px; border: 1px solid #DFE8D9; border-radius: 6px; background: #FBFDF9; page-break-inside: avoid; }
+    .signature-role { color: #3F5A32; font-size: 8px; font-weight: 700; }
+    .signature-line { height: 20px; margin-top: 3px; border-bottom: 1px solid #6B7567; }
+    .signature-meta { display: block; margin-top: 3px; color: #788171; font-size: 7px; }
+
     .footer-section {
       display: flex;
       justify-content: space-between;
@@ -337,7 +391,7 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
     <div class="meta-row">
       <div class="meta-item">
         <span class="meta-label">${t("resultCustomer")}</span>
-        <span class="meta-value">${customerName}</span>
+        <span class="meta-value">${escapeHtml(customerName)}</span>
       </div>
       <div class="meta-item">
         <span class="meta-label">${t("creditScore")}</span>
@@ -348,6 +402,12 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
         <span class="meta-value">${t("grade" + r.grade)}</span>
       </div>
     </div>
+
+    <section class="input-summary">
+      <div class="input-summary-title">${t("decisionInputsTitle")}</div>
+      <div class="input-summary-hint">${t("decisionInputsHint")}</div>
+      <div class="input-grid">${summaryMarkup}</div>
+    </section>
 
     <div class="scores-grid">
       <div class="score-tile">
@@ -391,6 +451,15 @@ function printAssessmentWindow(state, t, formatCurrency, capitalize) {
         <ul>${renderList(cleanedExplanation.drivers)}</ul>
       </div>
     </div>
+
+    <section class="signatures">
+      <div class="signatures-title">${t("signatureTitle")}</div>
+      <div class="signature-grid">
+        <div class="signature-box"><span class="signature-role">${t("signatureAccountant")}</span><div class="signature-line"></div><span class="signature-meta">${t("signatureMeta")}</span></div>
+        <div class="signature-box"><span class="signature-role">${t("signatureManager")}</span><div class="signature-line"></div><span class="signature-meta">${t("signatureMeta")}</span></div>
+        <div class="signature-box"><span class="signature-role">${t("signatureFinal")}</span><div class="signature-line"></div><span class="signature-meta">${t("signatureMeta")}</span></div>
+      </div>
+    </section>
 
     <div class="footer-section">
       <span class="footer-credit">${printFooterCredit}</span>
