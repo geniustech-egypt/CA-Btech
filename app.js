@@ -98,6 +98,12 @@ const translations = {
     resultsTitle: "Assessment Results",
     resultsSubtitle: "Automated credit evaluation based on submitted data",
     creditScore: "Credit Score",
+    resultIScore: "I-Score (Credit Bureau)",
+    iScoreBandExcellent: "Excellent",
+    iScoreBandGood: "Good",
+    iScoreBandFair: "Fair",
+    iScoreBandWeak: "Weak",
+    iScoreNA: "N/A (not collected for this customer type)",
     riskGrade: "Risk Grade",
     requestedLimitDisplay: "Requested Credit Limit",
     approvedLimitDisplay: "Approved Credit Limit",
@@ -166,6 +172,14 @@ const translations = {
     expNoGuarantee: "No guarantee cheque provided",
     resultCustomer: "Customer",
     resultAssessmentDate: "Assessment Date",
+    decisionInputsTitle: "Decision Basis — Submitted Data",
+    decisionInputsHint: "Key information entered and used by the assessment model.",
+    noDataEntered: "No additional data entered",
+    signatureTitle: "Approvals & Signatures",
+    signatureAccountant: "Department Accountant",
+    signatureManager: "Department Manager",
+    signatureFinal: "Final Approval",
+    signatureMeta: "Name / Signature / Date",
 
     footerNote:
       "This tool provides an automated preliminary assessment. Final credit decisions should be reviewed and approved by an authorized department.",
@@ -264,6 +278,12 @@ const translations = {
     resultsTitle: "نتائج التقييم",
     resultsSubtitle: "تقييم ائتماني آلي بناءً على البيانات المقدمة",
     creditScore: "التقييم الائتماني",
+    resultIScore: "درجة آي سكور (الاستعلام الائتماني)",
+    iScoreBandExcellent: "ممتاز",
+    iScoreBandGood: "جيد",
+    iScoreBandFair: "متوسط",
+    iScoreBandWeak: "ضعيف",
+    iScoreNA: "غير متاح (غير مطلوب لهذا النوع من العملاء)",
     riskGrade: "درجة الخطورة",
     requestedLimitDisplay: "الحد الائتماني المطلوب",
     approvedLimitDisplay: "الحد الائتماني المعتمد",
@@ -331,6 +351,14 @@ const translations = {
     expNoGuarantee: "لا يوجد شيك ضمان مقدم",
     resultCustomer: "العميل",
     resultAssessmentDate: "تاريخ التقييم",
+    decisionInputsTitle: "البيانات التي بُني عليها القرار",
+    decisionInputsHint: "أهم البيانات المدخلة والمستخدمة بواسطة نموذج التقييم.",
+    noDataEntered: "لا توجد بيانات إضافية مدخلة",
+    signatureTitle: "الاعتمادات والتوقيعات",
+    signatureAccountant: "محاسب القسم",
+    signatureManager: "مدير القسم",
+    signatureFinal: "الاعتماد النهائي",
+    signatureMeta: "الاسم / التوقيع / التاريخ",
 
     footerNote: "توفر هذه الأداة تقييمًا أوليًا آليًا. يجب مراجعة و اعتماد القرارات الائتمانية النهائية من قبل الادارة المختصة.",
     languageToggle: "English",
@@ -514,6 +542,20 @@ function iScoreAcceptanceRatio(iScoreRaw) {
   if (s >= 521 && s <= 546) return 0.5;
   if (s >= 400 && s <= 520) return 0.0;
   return 0;
+}
+
+// تصنيف درجة آي سكور لعرضها في النتائج والبيان المطبوع
+function iScoreBandKey(iScoreRaw) {
+  const s = num(iScoreRaw);
+  if (s >= 726) return "iScoreBandExcellent";
+  if (s >= 651) return "iScoreBandGood";
+  if (s >= 521) return "iScoreBandFair";
+  return "iScoreBandWeak";
+}
+
+function exactIScoreValue(iScoreRaw) {
+  const parsed = parseFloat(String(iScoreRaw).replace(/,/g, ""));
+  return Number.isFinite(parsed) ? String(parsed) : "";
 }
 
 function branchScoreFactor(branchesRaw) {
@@ -956,6 +998,12 @@ function runAssessment() {
 
   state.result = {
     score: scoreData.total,
+    iScore: (state.customerType === "sole" && v.iScoreRating !== undefined && v.iScoreRating !== "" && !isNaN(parseFloat(v.iScoreRating)))
+      ? parseFloat(String(v.iScoreRating).replace(/,/g, ""))
+      : null,
+    iScoreBand: (state.customerType === "sole" && v.iScoreRating !== undefined && v.iScoreRating !== "" && !isNaN(parseFloat(v.iScoreRating)))
+      ? iScoreBandKey(v.iScoreRating)
+      : null,
     grade,
     decision,
     term,
@@ -1243,6 +1291,83 @@ function validateScreen2() {
   return valid;
 }
 
+const SUMMARY_CURRENCY_FIELDS = new Set([
+  "registeredCapital", "annualSalesBtech", "annualPlannedSales", "requestedCreditLimit",
+  "guaranteeValue", "cash", "accountsReceivable", "inventory", "shortTermDebt",
+  "totalDebt", "totalEquity", "revenue", "netIncome", "taxExpense",
+  "interestExpense", "depreciationAmortization",
+]);
+
+const SUMMARY_HIDDEN_FIELDS = new Set([
+  "customerName", "companyName", "businessActivity", "industry", "numberOfBranches", "registeredCapital",
+  "requestedCreditLimit", "legalHistory",
+]);
+
+function displaySummaryValue(field) {
+  const raw = state.values[field.key];
+  if (raw === undefined || raw === null || raw === "") return "";
+
+  if (field.type === "select") {
+    const option = (OPTION_SETS[field.optionsKey] || []).find((item) => item.value === String(raw));
+    return option?.labelKey ? t(option.labelKey) : (option?.raw != null ? `${option.raw} ${t("days")}` : String(raw));
+  }
+
+  if (SUMMARY_CURRENCY_FIELDS.has(field.key)) return formatCurrency(num(raw));
+  if (field.key === "iScoreRating") return `${exactIScoreValue(raw)} / 850 — ${t(iScoreBandKey(raw))}`;
+  return String(raw);
+}
+
+function renderDecisionInputsSummary() {
+  const title = document.getElementById("decisionInputsTitle");
+  const hint = document.getElementById("decisionInputsHint");
+  const grid = document.getElementById("decisionInputsGrid");
+  if (!title || !hint || !grid) return;
+
+  title.textContent = t("decisionInputsTitle");
+  hint.textContent = t("decisionInputsHint");
+  grid.innerHTML = "";
+
+  const fields = (MODEL_FIELDS[state.customerType] || []).flatMap((section) => section.fields);
+  const enteredFields = fields.filter((field) => !SUMMARY_HIDDEN_FIELDS.has(field.key) && displaySummaryValue(field) !== "");
+
+  if (!enteredFields.length) {
+    const empty = document.createElement("p");
+    empty.className = "decision-inputs-empty";
+    empty.textContent = t("noDataEntered");
+    grid.appendChild(empty);
+    return;
+  }
+
+  enteredFields.forEach((field) => {
+    const item = document.createElement("div");
+    item.className = "decision-input-item";
+    const label = document.createElement("span");
+    label.className = "decision-input-label";
+    label.textContent = t(field.labelKey);
+    const value = document.createElement("span");
+    value.className = "decision-input-value";
+    value.textContent = displaySummaryValue(field);
+    item.append(label, value);
+    grid.appendChild(item);
+  });
+}
+
+function applySignatureLabels() {
+  const title = document.getElementById("signaturesTitle");
+  if (title) title.textContent = t("signatureTitle");
+  [
+    ["signatureAccountantLabel", "signatureAccountant"],
+    ["signatureManagerLabel", "signatureManager"],
+    ["signatureFinalLabel", "signatureFinal"],
+    ["signatureAccountantMeta", "signatureMeta"],
+    ["signatureManagerMeta", "signatureMeta"],
+    ["signatureFinalMeta", "signatureMeta"],
+  ].forEach(([id, key]) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = t(key);
+  });
+}
+
 function renderScreen3() {
   try {
     runAssessment();
@@ -1261,6 +1386,9 @@ function renderScreen3() {
 
     document.getElementById("resultsTitle").textContent = t("resultsTitle");
     document.getElementById("resultsSubtitle").textContent = t("resultsSubtitle");
+
+    renderDecisionInputsSummary();
+    applySignatureLabels();
 
     renderScoreGauge(r.score, r.grade);
 
