@@ -524,7 +524,7 @@ function downloadAssessmentPdf(state, t, formatCurrency, capitalize) {
     downloadButton.textContent = isRtl ? "جارٍ تجهيز PDF…" : "Preparing PDF…";
   }
 
-  const exportWidth = 1040;
+  const exportWidth = 1400;
   const staging = document.createElement("div");
   staging.className = "pdf-staging";
   staging.dir = isRtl ? "rtl" : "ltr";
@@ -537,9 +537,7 @@ function downloadAssessmentPdf(state, t, formatCurrency, capitalize) {
   report.style.width = `${exportWidth}px`;
   report.style.maxWidth = "none";
   report.style.boxSizing = "border-box";
-  report.style.transform = "scale(0.74)";
-  report.style.transformOrigin = "top left";
-  report.classList.add("pdf-export-root", "pdf-landscape-export");
+  report.classList.add("pdf-export-root", "pdf-onepage");
   if (isRtl) report.classList.add("pdf-arabic-export");
 
   const reportHeader = document.createElement("header");
@@ -578,46 +576,78 @@ function downloadAssessmentPdf(state, t, formatCurrency, capitalize) {
   document.body.appendChild(staging);
 
   const options = {
-    margin: [6, 6, 12, 6],
+    margin: 0,
     filename: fileName,
     image: { type: "jpeg", quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false, foreignObjectRendering: isRtl, windowWidth: exportWidth, x: 0, y: 0, scrollX: 0, scrollY: 0 },
     jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
-    pagebreak: { mode: ["css", "legacy"], avoid: [".results-meta", ".result-tile", ".explanation-block"] },
+    pagebreak: { mode: [] },
   };
 
-  function removeTrailingBlankFragments(pdf) {
+  // Removes a trailing page only if nothing is drawn on it.
+  function removeTrailingBlankPages(pdf) {
     while (pdf.getNumberOfPages() > 1) {
       const page = pdf.internal?.pages?.[pdf.getNumberOfPages()] || [];
-      const imageHeights = page.map((line) => { const match = typeof line === "string" && line.match(/0 0 ([\d.]+) [\d.]+ [\d.]+ [\d.]+ cm/); return match ? Number(match[1]) : 0; }).filter((height) => height > 0);
-      const maxImageHeight = imageHeights.length ? Math.max(...imageHeights) : 0;
-      if (maxImageHeight > 1) break;
+      const hasImage = page.some((line) => typeof line === "string" && /\bDo\b/.test(line));
+      if (hasImage) break;
       pdf.deletePage(pdf.getNumberOfPages());
     }
   }
 
+  function restoreUi() {
+    staging.remove();
+    if (downloadButton) {
+      downloadButton.disabled = false;
+      downloadButton.textContent = originalLabel;
+    }
+  }
+
+  // Render the whole report once, then fit it onto ONE landscape A4 page.
+  // The report canvas is scaled into a white A4-shaped canvas so no pagination happens.
+  function fitCanvasToA4(canvas) {
+    const pageW = 297, pageH = 210, margin = 6;
+    const outW = Math.ceil(Math.max(
+      canvas.width * pageW / (pageW - margin * 2),
+      canvas.height * pageW / (pageH - margin * 2)
+    ));
+    const outH = Math.floor(outW * pageH / pageW) - 2;
+    const out = document.createElement("canvas");
+    out.width = outW;
+    out.height = outH;
+    const ctx = out.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, outW, outH);
+    const x = Math.round((outW - canvas.width) / 2);
+    const y = Math.round(outW * margin / pageW);
+    ctx.drawImage(canvas, x, y);
+    return out;
+  }
+
+  // First pass uses a custom page as wide as the report, so html2pdf does not clip it.
+  const renderPageW = (exportWidth * 25.4) / 96;
+  const renderOptions = { ...options, html2canvas: { ...options.html2canvas, width: exportWidth }, jsPDF: { unit: "mm", format: [renderPageW, renderPageW * 0.75], orientation: "landscape" } };
+
   html2pdf()
-    .set(options)
+    .set(renderOptions)
     .from(report)
     .toCanvas()
-    .toPdf()
-    .get("pdf")
-    .then((pdf) => {
-      removeTrailingBlankFragments(pdf);
-      pdf.save(fileName);
-      staging.remove();
-      if (downloadButton) {
-        downloadButton.disabled = false;
-        downloadButton.textContent = originalLabel;
-      }
+    .get("canvas")
+    .then((canvas) => {
+      const a4Canvas = fitCanvasToA4(canvas);
+      return html2pdf()
+        .set(options)
+        .from(a4Canvas, "canvas")
+        .toPdf()
+        .get("pdf")
+        .then((pdf) => {
+          removeTrailingBlankPages(pdf);
+          pdf.save(fileName);
+        });
     })
+    .then(restoreUi)
     .catch((error) => {
       console.error("PDF download failed:", error);
-      staging.remove();
-      if (downloadButton) {
-        downloadButton.disabled = false;
-        downloadButton.textContent = originalLabel;
-      }
+      restoreUi();
     });
 }
 
