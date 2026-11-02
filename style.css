@@ -1345,3 +1345,69 @@ body.rtl .signature-box {
   direction: rtl;
   grid-template-columns: auto minmax(0, 1fr);
 }
+
+
+/* ===== PDF download: everything on ONE landscape A4 page ===== */
+.pdf-export-root.pdf-onepage {
+  position: relative;
+  width: 1400px !important;
+  max-width: none !important;
+  padding: 18px 26px 12px !important;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: #ffffff;
+  height: auto !important;
+  overflow: visible;
+}
+.pdf-onepage .pdf-report-header { min-height: 60px; padding: 10px 20px; margin-bottom: 10px; }
+.pdf-onepage .screen-title { margin: 0 0 2px; font-size: 1.25rem; }
+.pdf-onepage .screen-hint { margin: 0 0 8px; font-size: 0.85rem; }
+.pdf-onepage .results-meta { margin: 0 0 10px !important; padding: 8px 14px; gap: 28px; }
+.pdf-onepage .decision-inputs-panel,
+.pdf-onepage .signatures-panel { padding-top: 10px; margin-top: 0; }
+.pdf-onepage .signatures-panel { margin-top: 10px; }
+.pdf-onepage .explanation-title { margin: 0 0 8px; font-size: 0.95rem; }
+.pdf-onepage .decision-inputs-hint { margin: -4px 0 8px; font-size: 0.78rem; }
+.pdf-onepage .decision-inputs-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 6px; }
+.pdf-onepage .decision-input-item { padding: 6px 9px; gap: 2px; border-radius: 8px; }
+.pdf-onepage .decision-input-label { font-size: 0.64rem; }
+.pdf-onepage .decision-input-value { font-size: 0.8rem; }
+.pdf-onepage .results-hero {
+  grid-template-columns: 170px minmax(0, 1fr) !important;
+  gap: 20px;
+  padding: 10px 0 10px;
+}
+.pdf-onepage .pdf-score-circle { width: 140px; height: 140px; border-width: 10px; }
+.pdf-onepage .pdf-score-value { font-size: 32px; }
+.pdf-onepage .pdf-score-max { margin-top: 4px; font-size: 11px; }
+.pdf-onepage .results-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 8px; }
+.pdf-onepage .result-tile { padding: 9px 11px; gap: 4px; border-radius: 10px; }
+.pdf-onepage .result-tile-label { font-size: 0.64rem; }
+.pdf-onepage .result-tile-value,
+.pdf-onepage .limit-range { font-size: 0.9rem; }
+.pdf-onepage .limit-range-note { font-size: 0.64rem; line-height: 1.35; }
+.pdf-onepage .explanation-panel { padding-top: 10px; }
+.pdf-onepage .explanation-columns { gap: 8px; }
+.pdf-onepage .explanation-block { padding: 8px 10px; min-height: 0 !important; }
+.pdf-onepage .explanation-heading { margin: 0 0 5px; font-size: 0.75rem; }
+.pdf-onepage .explanation-list li { font-size: 0.72rem; line-height: 1.35; margin-bottom: 2px; }
+.pdf-onepage .signatures-grid { gap: 10px; }
+.pdf-onepage .signature-box { min-height: 62px; padding: 8px 12px; gap: 4px; }
+.pdf-onepage .signature-line { height: 16px; }
+.pdf-onepage .signature-role { font-size: 0.74rem; }
+.pdf-onepage .signature-meta { font-size: 0.64rem; }
+.pdf-onepage .pdf-report-footer { margin-top: 8px; padding-top: 6px; }
+
+/* html2pdf temporary containers: keep them as wide as the report (1400px),
+   independent of the browser window width, so nothing is clipped. */
+.html2pdf__overlay {
+  width: 1400px !important;
+  right: auto !important;
+  overflow: visible !important;
+}
+.html2pdf__container {
+  left: 0 !important;
+  right: auto !important;
+  margin: 0 !important;
+}
