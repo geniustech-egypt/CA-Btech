@@ -1,4 +1,4 @@
-const CACHE_NAME = 'btech-credit-v13';
+const CACHE_NAME = 'btech-credit-v14';
 
 const ASSETS = [
   './',
